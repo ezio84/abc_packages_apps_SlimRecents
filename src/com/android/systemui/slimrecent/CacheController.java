@@ -323,4 +323,11 @@ public class CacheController {
         return sRecentScreenShowing;
     }
 
+    /**
+     * Wether to clear the whole cache
+     */
+    public void clearCache() {
+        mMemoryCache.evictAll();
+    }
+
 }
