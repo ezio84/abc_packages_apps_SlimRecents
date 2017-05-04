@@ -504,7 +504,18 @@ public class RecentPanelView {
 
         String installer = pm.getInstallerPackageName(packageName);
         if (DEBUG) Log.d(TAG, "Package was installed by: " + installer);
-        if (reference.equals(installer)) {
+        if (reference.equals(AMAZON_REFERENCE)) {
+            if (reference.equals(installer)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if (!packageName.equals("com.android.settings")
+                && !packageName.equals("com.android.systemui")) {
+            //we already checked if at least PlayStore is installed with isReferenceInstalled
+            //so we can safely return true and search the package in the Playstore, if it's not
+            // Settings or SystemUI (it'd be useless for those).
             return true;
         }
         return false;
