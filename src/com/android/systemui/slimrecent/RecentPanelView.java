@@ -134,6 +134,7 @@ public class RecentPanelView {
 
     private int mMainGravity;
     private int mMaxAppsToLoad;
+    private float mCornerRadius;
     private float mScaleFactor;
     private int mExpandedMode = EXPANDED_MODE_AUTO;
     private boolean mIsScreenPinningEnabled;
@@ -918,6 +919,10 @@ public class RecentPanelView {
         mCurrentFavorites = favorites;
     }
 
+    protected void setCornerRadius(float radius) {
+        mCornerRadius = radius;
+    }
+
     /**
      * Notify listener that tasks are loaded.
      */
@@ -1196,6 +1201,9 @@ public class RecentPanelView {
                     startApplication(task);
                 }
             };
+            //Set corner radius
+            ec.cornerRadius = mCornerRadius;
+
             mCounter++;
             publishProgress(card);
         }

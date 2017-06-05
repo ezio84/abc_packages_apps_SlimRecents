@@ -608,6 +608,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENTS_MAX_APPS),
                     false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.SLIM_RECENTS_CORNER_RADIUS),
+                    false, this, UserHandle.USER_ALL);
             update();
         }
 
@@ -670,6 +673,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
                 mRecentPanelView.setMaxAppsToLoad(Settings.System.getIntForUser(
                         resolver, Settings.System.RECENTS_MAX_APPS, 15,
                         UserHandle.USER_CURRENT));
+                float cornerRadius = Converter.floatDpToPx(mContext, 5/*dp*/);
+                mRecentPanelView.setCornerRadius(Settings.System.getIntForUser(
+                        resolver, Settings.System.SLIM_RECENTS_CORNER_RADIUS, 1,
+                        UserHandle.USER_CURRENT) == 1 ? cornerRadius : 0f);
             }
 
             mRecentContent.setElevation(50);
