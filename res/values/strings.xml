@@ -16,6 +16,6 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- Sim recents -->
-    <string name="recents_multiwin_nolastapp">You removed all recents, please choose an app from launcher or drawer.</string>
-    <string name="recents_killapp_warning">Please long press to kill app</string>
+    <string name="recents_multiwin_nolastapp">No recent apps, open one</string>
+    <string name="recents_killapp_warning">Long press to kill app</string>
 </resources>
