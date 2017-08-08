@@ -174,6 +174,12 @@ public class RecentPanelView {
             updateExpandState();
 
             this.favorite = task.getIsFavorite();
+            this.appIconClickListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startApplication(task);
+                }
+            };
             this.appIconLongClickListener = new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
