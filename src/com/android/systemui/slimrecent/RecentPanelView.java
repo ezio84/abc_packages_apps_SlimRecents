@@ -141,7 +141,7 @@ public class RecentPanelView {
     private boolean mIsScreenPinningEnabled;
     private boolean mShowTopTask;
     private boolean mOnlyShowRunningTasks;
-    private static int mOneHandMode;
+    //private static int mOneHandMode:
     private static int mCardColor = 0x0ffffff;
 
     private String mCurrentFavorites = "";
@@ -910,7 +910,7 @@ public class RecentPanelView {
         return false;
     }
 
-    protected void setOneHandMode(String str) {
+    /*protected void setOneHandMode(String str) {
         if (str != null && str.contains("left")) {
             mOneHandMode = 1;
         } else if (str != null && str.contains("right")) {
@@ -918,7 +918,7 @@ public class RecentPanelView {
         } else {
             mOneHandMode = 0;
         }
-    }
+    }*/
 
     protected void setCardColor(int color) {
         mCardColor = color;
@@ -1360,11 +1360,11 @@ public class RecentPanelView {
                         R.dimen.recent_thumbnail_height) * scaleFactor);
 
         // Crop img if OneHandMode is active
-        final float INITIAL_SCALE = 0.75f;
+        //final float INITIAL_SCALE = 0.75f;
         int h = source.getHeight();
         int w = source.getWidth();
         Bitmap cropped = null;
-        try {
+        /*try {
             if (mOneHandMode == 1) {
                 cropped = Bitmap.createBitmap(source, 0, (int)(h * (1-INITIAL_SCALE)),
                         (int)(w * INITIAL_SCALE), (int)(h * INITIAL_SCALE));
@@ -1380,9 +1380,9 @@ public class RecentPanelView {
             cropped = source;
             source.recycle();
             source = null;
-        }
-        final int sourceWidth = mOneHandMode != 0 ? cropped.getWidth() : w;
-        final int sourceHeight = mOneHandMode != 0 ? cropped.getHeight() : h;
+        }*/
+        final int sourceWidth = /*mOneHandMode != 0 ? cropped.getWidth() : */w;
+        final int sourceHeight = /*mOneHandMode != 0 ? cropped.getHeight() : */h;
 
         // Compute the scaling factors to fit the new height and width, respectively.
         // To cover the final image, the final scaling will be the bigger
@@ -1409,7 +1409,7 @@ public class RecentPanelView {
         // scaled bitmap onto it.
         final Bitmap dest = Bitmap.createBitmap(thumbnailWidth, thumbnailHeight, Config.ARGB_8888);
         final Canvas canvas = new Canvas(dest);
-        canvas.drawBitmap(mOneHandMode != 0 ? cropped : source, null, targetRect, paint);
+        canvas.drawBitmap(/*mOneHandMode != 0 ? cropped : */source, null, targetRect, paint);
 
         return dest;
     }
