@@ -39,7 +39,7 @@ import android.util.TypedValue;
 
 public class ImageHelper {
 
-    public static Drawable getColoredDrawable(Drawable d, int color) {
+    /*public static Drawable getColoredDrawable(Drawable d, int color) {
         if (d == null) {
             return null;
         }
@@ -58,7 +58,7 @@ public class ImageHelper {
         final Rect rect = new Rect(0, 0, grayscaleBitmap.getWidth(), grayscaleBitmap.getHeight());
         cc.drawBitmap(grayscaleBitmap, rect, rect, pp);
         return new BitmapDrawable(grayscaleBitmap);
-    }
+    }*/
 
     public static Bitmap drawableToBitmap (Drawable drawable) {
         if (drawable == null) {
@@ -74,7 +74,7 @@ public class ImageHelper {
         return bitmap;
     }
 
-    public static Bitmap drawableToShortcutIconBitmap (
+    /*public static Bitmap drawableToShortcutIconBitmap (
             Context context, Drawable drawable, int dp) {
         if (drawable == null) {
             return null;
@@ -97,9 +97,9 @@ public class ImageHelper {
                 (size + drawable.getIntrinsicHeight()) / 2);
         drawable.draw(canvas);
         return bitmap;
-    }
+    }*/
 
-    private static Bitmap toGrayscale(Bitmap bmpOriginal) {
+    /*private static Bitmap toGrayscale(Bitmap bmpOriginal) {
         int width, height;
         height = bmpOriginal.getHeight();
         width = bmpOriginal.getWidth();
@@ -116,9 +116,9 @@ public class ImageHelper {
         paint.setColorFilter(f);
         c.drawBitmap(bmpOriginal, rect, rect, paint);
         return bmpGrayscale;
-    }
+    }*/
 
-    public static Drawable resize(Context context, Drawable image, int size) {
+    /*public static Drawable resize(Context context, Drawable image, int size) {
         if (image == null || context == null) {
             return null;
         }
@@ -146,9 +146,9 @@ public class ImageHelper {
                     middleY - bitmap.getHeight() / 2, paint);
             return new BitmapDrawable(context.getResources(), scaledBitmap);
         }
-    }
+    }*/
 
-    public static Bitmap getRoundedCornerBitmap(Bitmap bitmap) {
+    /*public static Bitmap getRoundedCornerBitmap(Bitmap bitmap) {
         if (bitmap == null) {
             return null;
         }
@@ -168,9 +168,9 @@ public class ImageHelper {
         paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
         canvas.drawBitmap(bitmap, rect, rect, paint);
         return output;
-    }
+    }*/
 
-    public static Bitmap getCircleBitmap(Bitmap bitmap) {
+    /*public static Bitmap getCircleBitmap(Bitmap bitmap) {
         if (bitmap == null) {
             return null;
         }
@@ -189,6 +189,5 @@ public class ImageHelper {
         canvas.drawCircle(width/2, height/2, width/2, paint);
 
         return output;
-    }
-
+    }*/
 }

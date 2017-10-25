@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014-2017 SlimRoms Project
  * Author: Lars Greiss - email: kufikugel@googlemail.com
+ * Copyright (C) 2017 ABC rom
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,29 +18,23 @@
 
 package com.android.systemui.slimrecent;
 
-import android.app.ActivityManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Resources;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.UserHandle;
 import android.provider.Settings;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.LruCache;
-
-import com.android.systemui.R;
 
 import java.util.ArrayList;
 
 /**
  * This class is our LRU cache controller. It holds
- * the app icons and the task screenshots.
+ * the app icons.
  *
  * BroadcastReceiver takes care of the situation if the user updated
  * or removed and installed again the app and the icon may have changed.
@@ -47,6 +42,10 @@ import java.util.ArrayList;
 public class CacheController {
 
     private final static String TAG = "RecentCacheController";
+
+    public interface EvictionCallback {
+        public void onEntryEvicted(String key);
+    }
 
     /**
      * Singleton.
@@ -59,6 +58,8 @@ public class CacheController {
     protected LruCache<String, Drawable> mMemoryCache;
 
     private Context mContext;
+    private final EvictionCallback mEvictionCallback;
+    private int mMaxMemory;
 
     // Array list of all current keys.
     private final ArrayList<String> mKeys = new ArrayList<String>();
@@ -66,11 +67,12 @@ public class CacheController {
     /**
      * Get the instance.
      */
-    public static CacheController getInstance(Context context) {
+    public static CacheController getInstance(Context context,
+            EvictionCallback evictionCallback) {
         if (sInstance != null) {
             return sInstance;
         } else {
-            return sInstance = new CacheController(context);
+            return sInstance = new CacheController(context, evictionCallback);
         }
     }
 
@@ -99,8 +101,10 @@ public class CacheController {
                     }
                 }
                 for (String key : keysToRemove) {
-                    Log.d(TAG, "application icon removed for uri= " + key);
                     removeBitmapFromMemCache(key);
+                    if (mEvictionCallback != null) {
+                        mEvictionCallback.onEntryEvicted(key);
+                    }
                 }
                 if (Intent.ACTION_PACKAGE_REMOVED.equals(action)) {
                     mayBeRemoveFavoriteEntry(packageName);
@@ -142,51 +146,17 @@ public class CacheController {
      * Constructor.
      * Defines the LRU cache size and setup the broadcast receiver.
      */
-    private CacheController(Context context) {
+    private CacheController(Context context, EvictionCallback evictionCallback) {
         mContext = context;
-
-        final Resources res = context.getResources();
-
-        int maxNumTasksToLoad = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.RECENTS_MAX_APPS, 15,
-                UserHandle.USER_CURRENT);
-
-        // Gets the dimensions of the device's screen
-        DisplayMetrics dm = res.getDisplayMetrics();
-        final int screenWidth = dm.widthPixels;
-        final int screenHeight = dm.heightPixels;
-
-        // We have ARGB_8888 pixel format, 4 bytes per pixel
-        final int size = screenWidth * screenHeight * 4;
-
-        // Calculate how much thumbnails we can put per screen page
-        final int thumbnailWidth = res.getDimensionPixelSize(R.dimen.recent_thumbnail_width);
-        final int thumbnailHeight = res.getDimensionPixelSize(R.dimen.recent_thumbnail_height);
-        final float thumbnailsPerPage =
-                (screenWidth / thumbnailWidth) * (screenHeight / thumbnailHeight);
-
-        // Needed screen pages for max thumbnails we can get.
-        float neededPages = maxNumTasksToLoad / thumbnailsPerPage;
-
-        // Calculate how much app icons we can put per screen page
-        final int iconSize = res.getDimensionPixelSize(R.dimen.recent_app_icon_size);
-        final float iconsPerPage = (screenWidth / iconSize) * (screenHeight / iconSize);
-
-        // Needed screen pages for max thumbnails and max app icons we can get.
-        neededPages += maxNumTasksToLoad / iconsPerPage;
-
-        // Calculate final cache size, stored in kilobytes.
-        int cacheSize = (int) (size * neededPages / 1024);
+        mEvictionCallback = evictionCallback;
 
         // Get max available VM memory, exceeding this amount will throw an
         // OutOfMemory exception. Stored in kilobytes as LruCache takes an
         // int in its constructor.
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
 
-        // Do not allow more then 1/6 from max available memory.
-        if (cacheSize > maxMemory / 6) {
-            cacheSize = maxMemory / 6;
-        }
+        int cacheSize = maxMemory / 4;
+        mMaxMemory = maxMemory;
 
         if (mMemoryCache == null) {
             mMemoryCache = new LruCache<String, Drawable>(cacheSize) {
@@ -257,4 +227,12 @@ public class CacheController {
         mMemoryCache.evictAll();
     }
 
+    /** Trims the cache to a specific size */
+    final void trimToSize(int cacheSize) {
+        mMemoryCache.trimToSize(cacheSize);
+    }
+
+    public int getMaxMemory() {
+        return mMaxMemory;
+    }
 }

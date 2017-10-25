@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2016 The CyanogenMod Project
+ * Copyright (C) 2014-2017 SlimRoms Project
+ * Copyright (C) 2017 ABC rom
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.android.systemui.slimrecent;
 
 import android.content.ComponentName;
@@ -85,7 +103,8 @@ public class IconPackHelper {
     }
 
     private void loadResourcesFromXmlParser(XmlPullParser parser,
-            Map<String, String> iconPackResources) throws XmlPullParserException, IOException {
+            Map<String, String> iconPackResources)
+            throws XmlPullParserException, IOException {
         int eventType = parser.getEventType();
         do {
 
@@ -155,7 +174,8 @@ public class IconPackHelper {
                 name = ComponentName.unflattenFromString(component);
                 if (name != null) {
                     iconPackResources.put(name.getPackageName(), drawable);
-                    iconPackResources.put(name.getPackageName() + "." + name.getClassName(), drawable);
+                    iconPackResources.put(name.getPackageName()
+                            + "." + name.getClassName(), drawable);
                 }
             }
         } while ((eventType = parser.next()) != XmlPullParser.END_DOCUMENT);
@@ -211,7 +231,8 @@ public class IconPackHelper {
         mIconPackResources = getIconPackResources(mContext, packageName);
         Resources res = null;
         try {
-            res = mContext.getPackageManager().getResourcesForApplication(packageName);
+            res = mContext.getPackageManager()
+                    .getResourcesForApplication(packageName);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             mLoading = false;
@@ -239,14 +260,16 @@ public class IconPackHelper {
         return true;
     }
 
-    private Map<String, String> getIconPackResources(Context context, String packageName) {
+    private Map<String, String> getIconPackResources(Context context,
+            String packageName) {
         if (TextUtils.isEmpty(packageName)) {
             return null;
         }
 
         Resources res = null;
         try {
-            res = context.getPackageManager().getResourcesForApplication(packageName);
+            res = context.getPackageManager()
+                    .getResourcesForApplication(packageName);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             return null;
@@ -254,7 +277,8 @@ public class IconPackHelper {
 
         XmlPullParser parser = null;
         InputStream inputStream = null;
-        Map<String, String> iconPackResources = new HashMap<String, String>();
+        Map<String, String> iconPackResources =
+                new HashMap<String, String>();
 
         try {
             inputStream = res.getAssets().open("appfilter.xml");
@@ -352,7 +376,8 @@ public class IconPackHelper {
     }
 
     private int getResourceIdForDrawable(String resource) {
-        int resId = mLoadedIconPackResource.getIdentifier(resource, "drawable", mLoadedIconPackName);
+        int resId = mLoadedIconPackResource.getIdentifier(
+                resource, "drawable", mLoadedIconPackName);
         return resId;
     }
 
@@ -365,11 +390,13 @@ public class IconPackHelper {
         if (!isIconPackLoaded() || mLoading){
             return 0;
         }
-        String drawable = mIconPackResources.get(info.packageName.toLowerCase()
+        String drawable = mIconPackResources
+                .get(info.packageName.toLowerCase()
                 + "." + info.name.toLowerCase());
         if (drawable == null) {
             // Icon pack doesn't have an icon for the activity, fallback to package icon
-            drawable = mIconPackResources.get(info.packageName.toLowerCase());
+            drawable = mIconPackResources
+                    .get(info.packageName.toLowerCase());
             if (drawable == null) {
                 return 0;
             }
@@ -383,7 +410,7 @@ public class IconPackHelper {
         }
         mCurrentIconPack = iconPack;
         if (!TextUtils.isEmpty(iconPack) || TextUtils.isEmpty(mCurrentIconPack)){
-            CacheController.getInstance(mContext).clearCache();
+            CacheController.getInstance(mContext, null).clearCache();
             unloadIconPack();
         }
         if (!TextUtils.isEmpty(mCurrentIconPack)){
