@@ -66,6 +66,7 @@ public class ExpandableCardAdapter
     public void onBindViewHolder(final ViewHolder holder, final int position) {
 
         ExpandableCard card = mCards.get(position);
+        card.index = position;
         holder.setCard(card);
 
         holder.screenshot.setVisibility(card.expanded ? View.VISIBLE : View.GONE);
@@ -111,7 +112,7 @@ public class ExpandableCardAdapter
         }
 
         if (card.needsThumbLoading) {
-            card.laterLoadTaskThumbnail(position);
+            card.laterLoadTaskThumbnail();
         }
     }
 
@@ -358,8 +359,7 @@ public class ExpandableCardAdapter
         int thumbnailHeight;
         boolean needsThumbLoading = false;
         int index;
-        void laterLoadTaskThumbnail(int pos) {
-            index = pos;
+        void laterLoadTaskThumbnail() {
             RecentPanelView.laterLoadTaskThumbnail(
                     context, this, identifier, scaleFactor,
                     thumbnailWidth, thumbnailHeight, persistentTaskId);
