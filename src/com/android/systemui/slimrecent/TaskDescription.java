@@ -30,6 +30,7 @@ public final class TaskDescription {
     final String identifier;
     final CharSequence description;
     int cardColor = 0;
+    final String componentName;
 
     private String mLabel; // application package label
     private int mExpandedState;
@@ -37,7 +38,8 @@ public final class TaskDescription {
 
     public TaskDescription(int _taskId, int _persistentTaskId,
             ActivityInfo _info, Intent _intent,
-            String _packageName, String _identifier, CharSequence _description,
+            String _packageName, String _componentName,
+            String _identifier, CharSequence _description,
             boolean isFavorite, int expandedState, int activityColor) {
         info = _info;
         intent = _intent;
@@ -46,6 +48,7 @@ public final class TaskDescription {
 
         description = _description;
         packageName = _packageName;
+        componentName = _componentName;
         identifier = _identifier;
 
         mExpandedState = expandedState;
@@ -61,6 +64,7 @@ public final class TaskDescription {
 
         description = null;
         packageName = null;
+        componentName = null;
         identifier = null;
     }
 

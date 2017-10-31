@@ -640,6 +640,16 @@ public class RecentPanelView {
 
             // Remove app from task and expanded state list.
             removeExpandedTaskState(td.identifier);
+
+            // Refresh activity info on next app load if we removed the app
+            // we can still keep icons
+            InfosCacheController.getInstance(mContext).removeInfos(td.componentName);
+            /* we could also refresh thumbs but this will slow down panel loading e.g. after a
+                clear all apps action, it's not worth it considering that even an old thumb
+                is good to recognize the app. A better solution would be to add a "last time"
+                thumb load check and refresh thumbs after some time.
+            */
+            // ThumbnailsCacheController.getInstance(mContext).removeThumb(td.identifier);
         }
 
         // All apps were removed? Close recents panel.
@@ -755,7 +765,7 @@ public class RecentPanelView {
                 int color = td.getPrimaryColor();
 
                 final TaskDescription item = new TaskDescription(taskId,
-                        persistentTaskId, info, baseIntent, info.packageName,
+                        persistentTaskId, info, baseIntent, info.packageName, cn,
                         identifier, description, isFavorite, expandedState, color);
                 item.setLabel(title);
                 return item;
