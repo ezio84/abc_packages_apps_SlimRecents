@@ -105,17 +105,13 @@ public class RecentPanelView {
     // mode_always not working well yet, thumbs refresh needs to be improved
     // private static final int EXPANDED_MODE_ALWAYS  = 2;
 
-    private static final int MENU_APP_DETAILS_ID   = 0;
-    private static final int MENU_APP_PLAYSTORE_ID = 1;
-    private static final int MENU_APP_AMAZON_ID    = 2;
-
     private static final int THUMB_INIT_LOAD = 5;
 
-    public static final String PLAYSTORE_REFERENCE = "com.android.vending";
-    public static final String AMAZON_REFERENCE    = "com.amazon.venezia";
+    //public static final String PLAYSTORE_REFERENCE = "com.android.vending";
+    //public static final String AMAZON_REFERENCE    = "com.amazon.venezia";
 
-    public static final String PLAYSTORE_APP_URI_QUERY = "market://details?id=";
-    public static final String AMAZON_APP_URI_QUERY    = "amzn://apps/android?p=";
+    //public static final String PLAYSTORE_APP_URI_QUERY = "market://details?id=";
+    //public static final String AMAZON_APP_URI_QUERY    = "amzn://apps/android?p=";
 
     private final Context mContext;
     private final ImageView mEmptyRecentView;
@@ -399,7 +395,13 @@ public class RecentPanelView {
      * Build card list and arrayadapter we need to fill with tasks
      */
     protected void buildCardListAndAdapter() {
-        mCardAdapter = new ExpandableCardAdapter(mContext);
+        boolean neverExpand = Settings.System.getIntForUser(
+                mContext.getContentResolver(),
+                Settings.System.RECENT_PANEL_EXPANDED_MODE,
+                EXPANDED_MODE_AUTO,
+                UserHandle.USER_CURRENT)
+                == EXPANDED_MODE_NEVER;
+        mCardAdapter = new ExpandableCardAdapter(mContext, neverExpand);
         if (mCardRecyclerView != null) {
             mCardRecyclerView.setAdapter(mCardAdapter);
         }
@@ -883,6 +885,12 @@ public class RecentPanelView {
 
     protected void setExpandedMode(int mode) {
         mExpandedMode = mode;
+        boolean fastMode =
+                mode == EXPANDED_MODE_NEVER;
+        if (fastMode) {
+            ThumbnailsCacheController.getInstance(mContext).clearCache();
+        }
+        mCardAdapter.setFastMode(fastMode);
     }
 
     protected boolean hasFavorite() {
@@ -1098,6 +1106,7 @@ public class RecentPanelView {
                         oldState &= ~EXPANDED_STATE_TOPTASK;
                     }
                     if (firstItems < mFirstExpandedItems) {
+                        //expand only if no expanded_mode_never
                         if (mExpandedMode != EXPANDED_MODE_NEVER) {
                             oldState |= EXPANDED_STATE_BY_SYSTEM;
                         }
@@ -1155,7 +1164,10 @@ public class RecentPanelView {
                             }
                 }, mScaleFactor);
             }
-            if (!topTask && preloadedThumbNum < THUMB_INIT_LOAD) {
+            // skip thumbs loading process if fast mode enabled
+            if (mExpandedMode == EXPANDED_MODE_NEVER) {
+                card.needsThumbLoading = false;
+            } else if (!topTask && preloadedThumbNum < THUMB_INIT_LOAD) {
                 // we load only the first THUMB_INIT_LOAD thumbnails skipping the top task,
                 // to avoid huge work loading all thumbnails. The adapter will trigger the loading
                 // of other ones when showing cards in the panel
@@ -1232,7 +1244,7 @@ public class RecentPanelView {
             new CacheController.EvictionCallback() {
         @Override
         public void onEntryEvicted(String key) {
-            if (key != null) {
+            if (key != null && mExpandedMode != EXPANDED_MODE_NEVER) {
                 ThumbnailsCacheController.getInstance(mContext).removeThumb(key);
             }
         }

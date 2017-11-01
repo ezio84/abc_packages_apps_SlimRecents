@@ -50,10 +50,13 @@ public class ExpandableCardAdapter
 
     private Context mContext;
 
+    private boolean mFastMode;
+
     private ArrayList<ExpandableCard> mCards = new ArrayList<>();
 
-    public ExpandableCardAdapter(Context context) {
+    public ExpandableCardAdapter(Context context, boolean fastMode) {
         mContext = context;
+        mFastMode = fastMode;
     }
 
     @Override
@@ -76,6 +79,8 @@ public class ExpandableCardAdapter
 
         if (card.pinAppIcon) {
             holder.expandButton.setImageDrawable(card.custom);
+        } else if (mFastMode) {
+            holder.expandButton.setImageResource(R.drawable.ic_options);
         } else if (card.expandVisible) {
             holder.expandButton.setImageResource(R.drawable.ic_expand);
         } else if (card.noIcon) {
@@ -107,11 +112,11 @@ public class ExpandableCardAdapter
 
         holder.appName.setText(card.appName);
 
-        if (card.screenshot != null && !card.screenshot.isRecycled()) {
+        if (!mFastMode && card.screenshot != null && !card.screenshot.isRecycled()) {
             holder.screenshot.setImageBitmap(card.screenshot);
         }
 
-        if (card.needsThumbLoading) {
+        if (!mFastMode && card.needsThumbLoading) {
             card.laterLoadTaskThumbnail();
         }
     }
@@ -142,6 +147,10 @@ public class ExpandableCardAdapter
     @Override
     public int getItemCount() {
         return mCards.size();
+    }
+
+    public void setFastMode(boolean fast) {
+        mFastMode = fast;
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -196,6 +205,10 @@ public class ExpandableCardAdapter
                         if (expCard.pinAppListener != null) {
                             expCard.pinAppListener.onClick(v);
                         }
+                    } else if (mFastMode) {
+                        expCard.optionsShown = true;
+                        int[] xy = getXy(v);
+                        showOptions(xy[0], xy[1]);
                     } else if (expCard.expandVisible) {
                         expCard.expanded = !expCard.expanded;
                         if (expCard.expandListener != null) {
@@ -231,11 +244,8 @@ public class ExpandableCardAdapter
                 @Override
                 public boolean onLongClick(View v) {
                     expCard.optionsShown = true;
-                    int[] temp = new int[2];
-                    v.getLocationOnScreen(temp);
-                    int x = upX - temp[0];
-                    int y = upY - temp[1];
-                    showOptions(x, y);
+                    int[] xy = getXy(v);
+                    showOptions(xy[0], xy[1]);
                     return true;
                 }
             });
@@ -273,11 +283,8 @@ public class ExpandableCardAdapter
                             } else {
                                 //finishIcon
                                 mCards.get(getAdapterPosition()).optionsShown = false;
-                                int[] temp = new int[2];
-                                v.getLocationOnScreen(temp);
-                                int x = upX - temp[0];
-                                int y = upY - temp[1];
-                                hideOptions(x, y);
+                                int[] xy = getXy(v);
+                                hideOptions(xy[0], xy[1]);
                             }
                         }
                     });
@@ -306,6 +313,14 @@ public class ExpandableCardAdapter
             });
             optionsView.setVisibility(View.VISIBLE);
             a.start();
+        }
+
+        private int[] getXy(View v) {
+            int[] xy = new int[2];
+            v.getLocationOnScreen(xy);
+            xy[0] = upX - xy[0];
+            xy[1] = upY - xy[1];
+            return xy;
         }
 
         void hideOptions(int x, int y) {
