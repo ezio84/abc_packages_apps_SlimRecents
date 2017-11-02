@@ -17,8 +17,6 @@
  */
 package com.android.systemui.slimrecent;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -34,9 +32,11 @@ import android.transition.TransitionManager;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
-import android.view.animation.PathInterpolator;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Interpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -91,7 +91,10 @@ public class ExpandableCardAdapter
             // we need to override tint list instead of setting cardview background color
             // because some dark themes could change system colors being used by
             // cardview code to set default ColorStateList.
-            holder.card.setBackgroundTintList(ColorStateList.valueOf(card.cardBackgroundColor));
+            ColorStateList cl = ColorStateList.valueOf(card.cardBackgroundColor);
+            holder.card.setBackgroundTintList(cl);
+            holder.optionsView.setBackgroundTintList(cl);
+            holder.optionsView.setBackgroundColor(0xff000000 | card.cardBackgroundColor);
             int color;
             if (ColorUtils.isDarkColor(card.cardBackgroundColor)) {
                 color = mContext.getColor(R.color.recents_task_bar_light_text_color);
@@ -100,6 +103,7 @@ public class ExpandableCardAdapter
             }
             holder.appName.setTextColor(color);
             holder.expandButton.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+            card.textColor = color;
         }
 
         if (card.appIcon != null) {
@@ -206,9 +210,7 @@ public class ExpandableCardAdapter
                             expCard.pinAppListener.onClick(v);
                         }
                     } else if (mFastMode) {
-                        expCard.optionsShown = true;
-                        int[] xy = getXy(v);
-                        showOptions(xy[0], xy[1]);
+                        showOptions();
                     } else if (expCard.expandVisible) {
                         expCard.expanded = !expCard.expanded;
                         if (expCard.expandListener != null) {
@@ -243,109 +245,92 @@ public class ExpandableCardAdapter
             itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    expCard.optionsShown = true;
-                    int[] xy = getXy(v);
-                    showOptions(xy[0], xy[1]);
+                    showOptions();
                     return true;
                 }
             });
 
-            hideOptions(-1, -1);
+            hideOptions(true);
         }
 
         public void setCard(ExpandableCard card) {
             this.expCard = card;
         }
 
-        void showOptions(int x, int y) {
-            LayoutInflater inflater = LayoutInflater.from(mContext);
-            int backgroundColor = card.getCardBackgroundColor().getDefaultColor();
-            if (ColorUtils.isDarkColor(backgroundColor)) {
-                optionsView.setBackgroundColor(
-                        ColorUtils.lightenColor(backgroundColor));
-            } else {
-                optionsView.setBackgroundColor(
-                        ColorUtils.darkenColor(backgroundColor));
+        void showOptions() {
+            // hide other cards options
+            for (int i = 0; i < getItemCount(); i++) {
+                mCards.get(i).forceHideOptions();
             }
+            LayoutInflater inflater = LayoutInflater.from(mContext);
             optionsView.removeAllViewsInLayout();
             for (int i = 0; i < expCard.mOptions.size(); i++) {
                 OptionsItem item = expCard.mOptions.get(i);
                 ImageView option = (ImageView) inflater.inflate(
                         R.layout.options_item, optionsView, false);
+                item.icon.setColorFilter(expCard.textColor, PorterDuff.Mode.MULTIPLY);
                 option.setImageDrawable(item.icon);
                 option.setId(item.id);
                     option.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             if (item.clickListener != null) {
-                                hideOptions(-1, -1);
+                                hideOptions(true);
                                 item.clickListener.onClick(v);
                             } else {
                                 //finishIcon
-                                mCards.get(getAdapterPosition()).optionsShown = false;
-                                int[] xy = getXy(v);
-                                hideOptions(xy[0], xy[1]);
+                                hideOptions(false);
                             }
                         }
                     });
                 optionsView.addView(option);
             }
 
-            if (x == -1 || y == -1) {
-                optionsView.setVisibility(View.VISIBLE);
-                return;
-            }
-
-            final double horz = Math.max(itemView.getWidth() - x, x);
-            final double vert = Math.max(itemView.getHeight() - y, y);
-            final float r = (float) Math.hypot(horz, vert);
-
-            final Animator a = ViewAnimationUtils
-                    .createCircularReveal(optionsView, x, y, 0, r);
-            a.setDuration(700);
-            a.setInterpolator(new PathInterpolator(0f, 0f, 0.2f, 1f));
-            a.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    super.onAnimationEnd(animation);
-
-                }
-            });
             optionsView.setVisibility(View.VISIBLE);
-            a.start();
+            AlphaAnimation animation = new AlphaAnimation(0.0f, 1.0f);
+            Interpolator interpolator = AnimationUtils.loadInterpolator(
+                    mContext, android.R.interpolator.decelerate_quad);
+            animation.setInterpolator(interpolator);
+            animation.setDuration(350);
+            optionsView.startAnimation(animation);
+            cardContentVisibility(false);
         }
 
-        private int[] getXy(View v) {
-            int[] xy = new int[2];
-            v.getLocationOnScreen(xy);
-            xy[0] = upX - xy[0];
-            xy[1] = upY - xy[1];
-            return xy;
-        }
-
-        void hideOptions(int x, int y) {
-            if (x == -1 || y == -1) {
+        public void hideOptions(boolean force) {
+            if (force) {
                 optionsView.setVisibility(View.GONE);
+                cardContentVisibility(true);
                 return;
             }
-
-            final double horz = Math.max(itemView.getWidth() - x, x);
-            final double vert = Math.max(itemView.getHeight() - y, y);
-            final float r = (float) Math.hypot(horz, vert);
-
-            final Animator a = ViewAnimationUtils
-                    .createCircularReveal(optionsView, x, y, r, 0);
-            a.setDuration(700);
-            a.setInterpolator(new PathInterpolator(0f, 0f, 0.2f, 1f));
-            a.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    super.onAnimationEnd(animation);
-                    optionsView.setVisibility(View.GONE);
-                }
-            });
-            a.start();
+            AlphaAnimation animation = new AlphaAnimation(1.0f, 0.0f);
+            Interpolator interpolator = AnimationUtils.loadInterpolator(
+                    mContext, android.R.interpolator.accelerate_quad);
+            animation.setInterpolator(interpolator);
+            animation.setDuration(300);
+            animation.setAnimationListener(animListener);
+            optionsView.startAnimation(animation);
+            cardContentVisibility(true);
         }
+
+        void cardContentVisibility(boolean show) {
+            appIcon.setVisibility(show ? View.VISIBLE : View.GONE);
+            favorite.setVisibility(show
+                    ? (expCard != null && expCard.favorite ? View.VISIBLE: View.GONE)
+                    : View.GONE);
+            appName.setVisibility(show ? View.VISIBLE : View.GONE);
+            expandButton.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+
+        Animation.AnimationListener animListener =
+                new Animation.AnimationListener() {
+            public void onAnimationEnd(Animation animation) {
+                optionsView.setVisibility(View.GONE);
+            }
+            public void onAnimationRepeat(Animation animation) {
+            }
+            public void onAnimationStart(Animation animation) {
+            }
+        };
     }
 
     public interface ExpandListener {
@@ -356,13 +341,17 @@ public class ExpandableCardAdapter
         void onRefresh(int index);
     }
 
+    public interface HideOptionsListener {
+        void onHideOptions(int index);
+    }
+
     public static class ExpandableCard {
         boolean expanded = false;
         String appName;
         Drawable appIcon;
         Bitmap screenshot;
         private ArrayList<OptionsItem> mOptions = new ArrayList<>();
-        boolean optionsShown = false;
+        int textColor;
         boolean expandVisible = true;
         boolean pinAppIcon = false;
         boolean noIcon = false;
@@ -388,6 +377,7 @@ public class ExpandableCardAdapter
         View.OnClickListener cardClickListener;
         ExpandListener expandListener;
         RefreshListener refreshListener;
+        HideOptionsListener hideOptionsListener;
         int persistentTaskId = -1;
         String packageName;
 
@@ -406,6 +396,10 @@ public class ExpandableCardAdapter
 
         void refreshThumb() {
             refreshListener.onRefresh(index);
+        }
+
+        void forceHideOptions() {
+            hideOptionsListener.onHideOptions(index);
         }
     }
 

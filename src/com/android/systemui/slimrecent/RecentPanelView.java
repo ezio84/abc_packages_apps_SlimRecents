@@ -238,6 +238,14 @@ public class RecentPanelView {
                 }
             };
 
+            this.hideOptionsListener = new ExpandableCardAdapter.HideOptionsListener() {
+                @Override
+                public void onHideOptions(int index) {
+                    hideOptions(index);
+                }
+            };
+
+
             View.OnClickListener listener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -349,6 +357,16 @@ public class RecentPanelView {
         }*/
     }
 
+
+    private void hideOptions(int index) {
+        ExpandableCardAdapter.ViewHolder vh =
+                (ExpandableCardAdapter.ViewHolder) mCardRecyclerView
+                .findViewHolderForLayoutPosition(index);
+        if (vh != null) {
+            vh.hideOptions(true);
+        }
+    }
+
     public interface OnExitListener {
         void onExit();
     }
@@ -434,7 +452,7 @@ public class RecentPanelView {
                 if (!areOptionsHidden) {
                     ExpandableCardAdapter.ViewHolder vh =
                             (ExpandableCardAdapter.ViewHolder) viewHolder;
-                    vh.hideOptions(-1, -1);
+                    vh.hideOptions(true);
                     areOptionsHidden = true;
                 }
 
@@ -1004,6 +1022,12 @@ public class RecentPanelView {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+
+            // be sure to hide cards optionsView in the viewHolder
+            // before cleaning up cards
+            for (int i = 0; i < mCardAdapter.getItemCount(); i++) {
+                hideOptions(i);
+            }
             mCardAdapter.clearCards();
             mController.resetTasks();
         }
