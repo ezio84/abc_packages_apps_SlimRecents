@@ -83,9 +83,8 @@ public class ExpandableCardAdapter
             holder.expandButton.setImageResource(R.drawable.ic_options);
         } else if (card.expandVisible) {
             holder.expandButton.setImageResource(R.drawable.ic_expand);
-        } else if (card.noIcon) {
-            holder.expandButton.setImageAlpha(0);
         }
+        holder.expandButton.setVisibility(card.noIcon ? View.INVISIBLE : View.VISIBLE);
 
         if (card.cardBackgroundColor != 0) {
             // we need to override tint list instead of setting cardview background color
@@ -250,7 +249,7 @@ public class ExpandableCardAdapter
                 }
             });
 
-            hideOptions(true);
+            optionsView.setVisibility(View.GONE);
         }
 
         public void setCard(ExpandableCard card) {
@@ -314,11 +313,9 @@ public class ExpandableCardAdapter
 
         void cardContentVisibility(boolean show) {
             appIcon.setVisibility(show ? View.VISIBLE : View.GONE);
-            favorite.setVisibility(show
-                    ? (expCard != null && expCard.favorite ? View.VISIBLE: View.GONE)
-                    : View.GONE);
             appName.setVisibility(show ? View.VISIBLE : View.GONE);
-            expandButton.setVisibility(show ? View.VISIBLE : View.GONE);
+            favorite.setVisibility(show && expCard.favorite ? View.VISIBLE : View.GONE);
+            expandButton.setVisibility(show && !expCard.noIcon ? View.VISIBLE : View.GONE);
         }
 
         Animation.AnimationListener animListener =

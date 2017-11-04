@@ -331,7 +331,8 @@ public class RecentPanelView {
             boolean screenPinningEnabled = mIsScreenPinningEnabled;
             expanded = isExpanded;
             expandVisible = !isTopTask;
-            noIcon = isTopTask && !screenPinningEnabled;
+            noIcon = mExpandedMode != EXPANDED_MODE_NEVER
+                    && isTopTask && !screenPinningEnabled;
             pinAppIcon = isTopTask && screenPinningEnabled;
             custom = mContext.getDrawable(R.drawable.ic_slimrec_pin_app);
         }
