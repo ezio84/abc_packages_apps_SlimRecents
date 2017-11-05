@@ -101,7 +101,7 @@ public class RecentPanelView {
     public static final int EXPANDED_STATE_TOPTASK   = 8;
 
     public static final int EXPANDED_MODE_AUTO    = 0;
-    private static final int EXPANDED_MODE_NEVER = 1;
+    public static final int EXPANDED_MODE_NEVER = 1;
     // mode_always not working well yet, thumbs refresh needs to be improved
     // private static final int EXPANDED_MODE_ALWAYS  = 2;
 
@@ -417,7 +417,7 @@ public class RecentPanelView {
         boolean neverExpand = Settings.System.getIntForUser(
                 mContext.getContentResolver(),
                 Settings.System.RECENT_PANEL_EXPANDED_MODE,
-                EXPANDED_MODE_AUTO,
+                EXPANDED_MODE_NEVER,
                 UserHandle.USER_CURRENT)
                 == EXPANDED_MODE_NEVER;
         mCardAdapter = new ExpandableCardAdapter(mContext, neverExpand);

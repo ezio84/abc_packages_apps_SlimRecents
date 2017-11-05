@@ -730,7 +730,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
                 mRecentPanelView.setScaleFactor(mScaleFactor);
                 mRecentPanelView.setExpandedMode(Settings.System.getIntForUser(
                         resolver, Settings.System.RECENT_PANEL_EXPANDED_MODE,
-                        mRecentPanelView.EXPANDED_MODE_AUTO,
+                        mRecentPanelView.EXPANDED_MODE_NEVER,
                         UserHandle.USER_CURRENT));
                 /*mRecentPanelView.setOneHandMode(Settings.Global.getString(
                         resolver, Settings.Global.SINGLE_HAND_MODE));*/
