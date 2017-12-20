@@ -116,11 +116,8 @@ public class ExpandableCardAdapter
         holder.appName.setText(card.appName);
 
         if (!mFastMode && card.screenshot != null && !card.screenshot.isRecycled()) {
+            holder.screenshot.setThumbnail(card.scaleFactor, card.thumbnailWidth, card.thumbnailHeight);
             holder.screenshot.setImageBitmap(card.screenshot);
-        }
-
-        if (!mFastMode && card.needsThumbLoading) {
-            card.laterLoadTaskThumbnail();
         }
     }
 
@@ -157,7 +154,7 @@ public class ExpandableCardAdapter
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView screenshot;
+        RecentThumbView screenshot;
         ImageView appIcon;
         ImageView favorite;
         TextView appName;
@@ -177,7 +174,7 @@ public class ExpandableCardAdapter
             appName = (TextView) itemView.findViewById(R.id.app_name);
             appName.setTypeface(Typeface.create(
                     "sans-serif-condensed", Typeface.BOLD));
-            screenshot = (ImageView) itemView.findViewById(R.id.screenshot);
+            screenshot = (RecentThumbView) itemView.findViewById(R.id.screenshot);
             card = (CardView) itemView.findViewById(R.id.card);
             optionsView = (LinearLayout) itemView.findViewById(R.id.card_options);
 
@@ -334,10 +331,6 @@ public class ExpandableCardAdapter
         void onExpanded(boolean expanded);
     }
 
-    public interface RefreshListener {
-        void onRefresh(int index);
-    }
-
     public interface HideOptionsListener {
         void onHideOptions(int index);
     }
@@ -358,13 +351,7 @@ public class ExpandableCardAdapter
         float scaleFactor;
         int thumbnailWidth;
         int thumbnailHeight;
-        boolean needsThumbLoading = false;
         int index;
-        void laterLoadTaskThumbnail() {
-            RecentPanelView.laterLoadTaskThumbnail(
-                    context, this, identifier, scaleFactor,
-                    thumbnailWidth, thumbnailHeight, persistentTaskId);
-        }
         float cornerRadius;
         View.OnClickListener appIconClickListener;
         View.OnClickListener pinAppListener;
@@ -373,7 +360,6 @@ public class ExpandableCardAdapter
         Drawable custom;
         View.OnClickListener cardClickListener;
         ExpandListener expandListener;
-        RefreshListener refreshListener;
         HideOptionsListener hideOptionsListener;
         int persistentTaskId = -1;
         String packageName;
@@ -389,10 +375,6 @@ public class ExpandableCardAdapter
 
         public void clearOptions() {
             mOptions.clear();
-        }
-
-        void refreshThumb() {
-            refreshListener.onRefresh(index);
         }
 
         void forceHideOptions() {

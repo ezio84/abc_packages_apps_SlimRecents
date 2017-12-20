@@ -86,13 +86,13 @@
                     android:layout_height="match_parent" />
             </FrameLayout>
 
-            <com.android.systemui.slimrecent.RecentImageView
+            <com.android.systemui.slimrecent.RecentThumbView
                 android:id="@+id/screenshot"
                 android:background="@android:color/transparent"
                 android:layout_width="match_parent"
                 android:visibility="gone"
                 android:layout_margin="4dp"
-                android:layout_height="wrap_content" />
+                android:layout_height="140dp" />
 
         </LinearLayout>
 

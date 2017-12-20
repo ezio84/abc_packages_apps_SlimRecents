@@ -696,12 +696,12 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
             ContentResolver resolver = mContext.getContentResolver();
 
-            boolean isFastMode = Settings.System.getIntForUser(
+            int expandMode = Settings.System.getIntForUser(
                         resolver, Settings.System.RECENT_PANEL_EXPANDED_MODE,
-                        mRecentPanelView.EXPANDED_MODE_NEVER,
-                        UserHandle.USER_CURRENT) == 1;
+                        RecentPanelView.EXPANDED_MODE_NEVER,
+                        UserHandle.USER_CURRENT);
             CacheMoreCardsLayoutManager llm =
-                    new CacheMoreCardsLayoutManager(mContext, mWindowManager, isFastMode);
+                    new CacheMoreCardsLayoutManager(mContext, mWindowManager, expandMode);
             llm.setReverseLayout(true);
             mCardRecyclerView.setLayoutManager(llm);
 
@@ -736,7 +736,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
                 mRecentPanelView.setScaleFactor(mScaleFactor);
                 mRecentPanelView.setExpandedMode(Settings.System.getIntForUser(
                         resolver, Settings.System.RECENT_PANEL_EXPANDED_MODE,
-                        mRecentPanelView.EXPANDED_MODE_NEVER,
+                        RecentPanelView.EXPANDED_MODE_NEVER,
                         UserHandle.USER_CURRENT));
                 /*mRecentPanelView.setOneHandMode(Settings.Global.getString(
                         resolver, Settings.Global.SINGLE_HAND_MODE));*/
@@ -1081,28 +1081,40 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private class CacheMoreCardsLayoutManager extends LinearLayoutManager {
         private Context context;
         private WindowManager mWindowManager;
-        private boolean mFastMode;
+        private int mExpandMode;
 
         public CacheMoreCardsLayoutManager(Context context,
-                WindowManager windowManager, boolean fastMode) {
+                WindowManager windowManager, int expandMode) {
             super(context);
             this.context = context;
             this.mWindowManager = windowManager;
-            this.mFastMode = fastMode;
+            this.mExpandMode = expandMode;
         }
 
         @Override
         protected int getExtraLayoutSpace(RecyclerView.State state) {
-            return mFastMode ? 300 : getScreenHeight();
+            int space = 300;
+            switch(mExpandMode) {
+                case RecentPanelView.EXPANDED_MODE_NEVER:
+                    space = 300;
+                    break;
+                case RecentPanelView.EXPANDED_MODE_AUTO:
+                    space = 600;
+                    break;
+                /*case RecentPanelView.EXPANDED_MODE_ALWAYS:
+                    space = getScreenHeight();
+                    break;*/
+            }
+            return space;
         }
 
-        private int getScreenHeight() {
+        /*private int getScreenHeight() {
             Display display = mWindowManager.getDefaultDisplay();
             Point size = new Point();
             display.getSize(size);
             int screenHeight = size.y;
             return screenHeight;
-        }
+        }*/
 
         /**
          * Disable predictive animations. There is a bug in RecyclerView which causes views that
