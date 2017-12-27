@@ -92,16 +92,19 @@ public class RecentThumbView extends ImageView {
             if (bitmap != null && bitmap.isRecycled()) {
                 return;
             }
-            mThumbnailWidth *= mScaleFactor;
-            mThumbnailHeight *= mScaleFactor;
             canvas.setHwBitmapsInSwModeEnabled(true);
             canvas.setDrawFilter(new PaintFlagsDrawFilter(Paint.ANTI_ALIAS_FLAG,
                             Paint.FILTER_BITMAP_FLAG));
             int h = bitmap.getHeight();
             int w = bitmap.getWidth();
-            int smallerSize = w > h ? h : w;
-            Rect src = new Rect(0, 0, smallerSize, smallerSize);
-            final RectF targetRect = new RectF(0.0f, 0.0f, mThumbnailWidth, mThumbnailHeight);
+            Rect src;
+            if ((((float) h) / mThumbnailHeight) > (((float) w) / mThumbnailWidth)) {
+                src = new Rect(0, 0, w, mThumbnailHeight*w/mThumbnailWidth);
+            } else {
+                src = new Rect(0, 0, mThumbnailWidth*h/mThumbnailHeight, h);
+            }
+            final RectF targetRect = new RectF(0.0f, 0.0f,
+                    mThumbnailWidth*mScaleFactor, mThumbnailHeight*mScaleFactor);
             canvas.drawBitmap(bitmap, src, targetRect, null);
         }
     }

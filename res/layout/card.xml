@@ -92,7 +92,7 @@
                 android:layout_width="match_parent"
                 android:visibility="gone"
                 android:layout_margin="4dp"
-                android:layout_height="140dp" />
+                android:layout_height="@dimen/recent_thumbnail_height" />
 
         </LinearLayout>
 
