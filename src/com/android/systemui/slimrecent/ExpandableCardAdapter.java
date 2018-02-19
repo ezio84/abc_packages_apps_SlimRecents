@@ -56,7 +56,7 @@ public class ExpandableCardAdapter
 
     public ExpandableCardAdapter(Context context, boolean fastMode) {
         mContext = context;
-        mFastMode = fastMode;
+        mFastMode = /*fastMode;*/true;
     }
 
     @Override

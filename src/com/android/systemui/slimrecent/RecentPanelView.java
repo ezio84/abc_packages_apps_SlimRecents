@@ -403,12 +403,12 @@ public class RecentPanelView {
      * Build card list and arrayadapter we need to fill with tasks
      */
     protected void buildCardListAndAdapter() {
-        boolean neverExpand = Settings.System.getIntForUser(
+        boolean neverExpand = /*Settings.System.getIntForUser(
                 mContext.getContentResolver(),
                 Settings.System.RECENT_PANEL_EXPANDED_MODE,
                 EXPANDED_MODE_NEVER,
                 UserHandle.USER_CURRENT)
-                == EXPANDED_MODE_NEVER;
+                == EXPANDED_MODE_NEVER;*/true;
         mCardAdapter = new ExpandableCardAdapter(mContext, neverExpand);
         if (mCardRecyclerView != null) {
             mCardRecyclerView.setAdapter(mCardAdapter);
