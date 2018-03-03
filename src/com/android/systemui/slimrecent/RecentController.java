@@ -692,10 +692,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
             ContentResolver resolver = mContext.getContentResolver();
 
-            int expandMode = /*Settings.System.getIntForUser(
+            int expandMode = Settings.System.getIntForUser(
                         resolver, Settings.System.RECENT_PANEL_EXPANDED_MODE,
                         RecentPanelView.EXPANDED_MODE_NEVER,
-                        UserHandle.USER_CURRENT);*/RecentPanelView.EXPANDED_MODE_NEVER;
+                        UserHandle.USER_CURRENT);
             CacheMoreCardsLayoutManager llm =
                     new CacheMoreCardsLayoutManager(mContext, mWindowManager, expandMode);
             llm.setReverseLayout(true);
@@ -730,10 +730,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
             if (mRecentPanelView != null) {
                 mRecentPanelView.setScaleFactor(mScaleFactor);
-                mRecentPanelView.setExpandedMode(/*Settings.System.getIntForUser(
+                mRecentPanelView.setExpandedMode(Settings.System.getIntForUser(
                         resolver, Settings.System.RECENT_PANEL_EXPANDED_MODE,
                         RecentPanelView.EXPANDED_MODE_NEVER,
-                        UserHandle.USER_CURRENT)*/RecentPanelView.EXPANDED_MODE_NEVER);
+                        UserHandle.USER_CURRENT));
                 /*mRecentPanelView.setOneHandMode(Settings.Global.getString(
                         resolver, Settings.Global.SINGLE_HAND_MODE));*/
                 mRecentPanelView.setCardColor(Settings.System.getIntForUser(
