@@ -625,11 +625,12 @@ public class RecentPanelView {
 
         td.setIsFavorite(!td.getIsFavorite());
 
-        RecentController.shouldHidePanel = false;
         Settings.System.putStringForUser(
                 resolver, Settings.System.RECENT_PANEL_FAVORITES,
                 entryToSave,
                 UserHandle.USER_CURRENT);
+
+         setCurrentFavorites(entryToSave);
     }
 
     /**
