@@ -320,8 +320,8 @@ public class RecentPanelView {
             boolean screenPinningEnabled = mIsScreenPinningEnabled;
             expanded = isExpanded;
             expandVisible = !isTopTask;
-            noIcon = mExpandedMode != EXPANDED_MODE_NEVER
-                    && isTopTask && !screenPinningEnabled;
+            /*noIcon = mExpandedMode != EXPANDED_MODE_NEVER
+                    && isTopTask && !screenPinningEnabled;*/
             pinAppIcon = isTopTask && screenPinningEnabled;
             custom = mContext.getDrawable(R.drawable.ic_slimrec_pin_app);
         }
@@ -1104,7 +1104,7 @@ public class RecentPanelView {
                         oldState |= EXPANDED_STATE_TOPTASK;
                     }
                     item.setExpandedState(oldState);
-                    addCard(item, true);
+                    addCard(item, true, false);
                     mFirstTask = item;
                 } else {
                     // FirstExpandedItems value forces to show always the app screenshot
@@ -1126,7 +1126,7 @@ public class RecentPanelView {
                         }
                         item.setExpandedState(oldState);
                         // The first tasks are always added to the task list.
-                        addCard(item, false);
+                        addCard(item, false, true);
                     } else {
                         /*if (mExpandedMode == EXPANDED_MODE_ALWAYS) {
                             oldState |= EXPANDED_STATE_BY_SYSTEM;
@@ -1135,7 +1135,7 @@ public class RecentPanelView {
                         // Favorite tasks are added next. Non favorite
                         // we hold for a short time in an extra list.
                         if (item.getIsFavorite()) {
-                            addCard(item, false);
+                            addCard(item, false, false);
                         } else {
                             nonFavoriteTasks.add(item);
                         }
@@ -1153,13 +1153,13 @@ public class RecentPanelView {
                     mIsLoading = false;
                     break;
                 }
-                addCard(item, false);
+                addCard(item, false, false);
             }
 
             return true;
         }
 
-        private void addCard(final TaskDescription task, boolean topTask) {
+        private void addCard(final TaskDescription task, boolean topTask, boolean loadBitmap) {
             final RecentCard card = new RecentCard(task);
 
             final Drawable appIcon =
@@ -1179,7 +1179,7 @@ public class RecentPanelView {
                 }, mScaleFactor);
             }
             // skip thumbs loading process if fast mode enabled
-            if (mExpandedMode != EXPANDED_MODE_NEVER && !topTask) {
+            if (mExpandedMode != EXPANDED_MODE_NEVER && !topTask && loadBitmap) {
                 new BitmapDownloaderTask(mContext,
                         new DownloaderCallback() {
                     @Override
