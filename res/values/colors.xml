@@ -32,4 +32,6 @@
 
     <color name="recents_empty_dark_color">#ff4d4d4d</color>
     <color name="recents_empty_light_color">#ffb3b3b3</color>
+
+    <color name="legacy_icon_background">#FFFFFF</color>
 </resources>

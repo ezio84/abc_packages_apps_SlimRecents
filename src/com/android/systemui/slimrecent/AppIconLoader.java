@@ -19,21 +19,18 @@
 package com.android.systemui.slimrecent;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.content.pm.ActivityInfo;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Process;
 
 import com.android.systemui.R;
 import com.android.systemui.slimrecent.ImageHelper;
+import com.android.systemui.slimrecent.icons.IconsHandler;
 
 import java.lang.ref.WeakReference;
 
@@ -87,99 +84,6 @@ public class AppIconLoader {
         final BitmapDownloaderTask task =
                 new BitmapDownloaderTask(callback, mContext, scaleFactor, identifier);
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, info);
-    }
-
-    /**
-     * Loads the actual app icon.
-     */
-    private static Drawable getAppIcon(ActivityInfo info,
-            Context context, float scaleFactor) {
-        if (context == null) {
-            return null;
-        }
-        PackageManager pm = context.getPackageManager();
-        return getResizedBitmap(getFullResIcon(context, info, pm), context, scaleFactor);
-
-    }
-
-    private static Drawable getFullResDefaultActivityIcon(Context context) {
-        return getFullResIcon(context, Resources.getSystem(),
-                com.android.internal.R.mipmap.sym_def_app_icon);
-    }
-
-    private static Drawable getFullResIcon(Context context,
-            Resources resources, int iconId) {
-        try {
-            return resources.getDrawableForDensity(iconId,
-                    context.getResources().getDisplayMetrics().densityDpi);
-        } catch (Resources.NotFoundException e) {
-            return getFullResDefaultActivityIcon(context);
-        }
-    }
-
-    private static Drawable getFullResIcon(Context context,
-            ActivityInfo info, PackageManager packageManager) {
-        Resources resources;
-        try {
-            resources = packageManager.getResourcesForApplication(
-                    info.applicationInfo);
-        } catch (PackageManager.NameNotFoundException e) {
-            resources = null;
-        }
-        if (resources != null) {
-            int iconId = 0;
-            if (IconPackHelper.getInstance(context).isIconPackLoaded()){
-                iconId = IconPackHelper.getInstance(context)
-                        .getResourceIdForActivityIcon(info);
-                if (iconId != 0) {
-                    return IconPackHelper.getInstance(context)
-                    .getIconPackResources().getDrawable(iconId);
-                }
-            }
-            iconId = info.getIconResource();
-            if (iconId != 0) {
-                return getFullResIcon(context, resources, iconId);
-            }
-        }
-        return getFullResDefaultActivityIcon(context);
-    }
-
-    /**
-     * Resize the app icon to the size we need to save space in our LRU cache.
-     * Normal we could assume that all app icons have the same default AOSP defined size.
-     * The reality shows that a lot apps do not care about and add just one big icon for
-     * all screen resolution.
-     */
-    private static Drawable getResizedBitmap(Drawable source,
-            Context context, float scaleFactor) {
-        if (source == null) {
-            return null;
-        }
-
-        final int iconSize = (int) (context.getResources()
-                .getDimensionPixelSize(R.dimen.recent_app_icon_size) * scaleFactor);
-
-        final Bitmap bitmap = ImageHelper.drawableToBitmap(source);
-        final Bitmap scaledBitmap = Bitmap
-                .createBitmap(iconSize, iconSize, Config.ARGB_8888);
-
-        final float ratioX = iconSize / (float) bitmap.getWidth();
-        final float ratioY = iconSize / (float) bitmap.getHeight();
-        final float middleX = iconSize / 2.0f;
-        final float middleY = iconSize / 2.0f;
-
-        final Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
-        paint.setAntiAlias(true);
-
-        final Matrix scaleMatrix = new Matrix();
-        scaleMatrix.setScale(ratioX, ratioY, middleX, middleY);
-
-        final Canvas canvas = new Canvas(scaledBitmap);
-        canvas.setMatrix(scaleMatrix);
-        canvas.drawBitmap(bitmap, middleX - bitmap.getWidth() / 2,
-                middleY - bitmap.getHeight() / 2, paint);
-
-        return new BitmapDrawable(context.getResources(), scaledBitmap);
     }
 
     /**
@@ -240,5 +144,17 @@ public class AppIconLoader {
                         mLRUCacheKey, (BitmapDrawable)bitmap);
             }
         }
+    }
+
+    /**
+     * Loads the actual app icon.
+     */
+    private static Drawable getAppIcon(ActivityInfo info,
+            Context context, float scaleFactor) {
+        if (context == null) {
+            return null;
+        }
+        return IconsHandler.getInstance(context).getIconFromHandler(context, info, scaleFactor);
+
     }
 }
