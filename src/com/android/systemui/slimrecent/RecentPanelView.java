@@ -132,6 +132,7 @@ public class RecentPanelView {
     private int mMaxAppsToLoad;
     private float mCornerRadius;
     private float mScaleFactor;
+    private int mIconSizeId;
     private int mExpandedMode = EXPANDED_MODE_AUTO;
     private boolean mIsScreenPinningEnabled;
     //private static int mOneHandMode:
@@ -393,6 +394,7 @@ public class RecentPanelView {
                         R.dimen.recent_thumbnail_width));
         mThumbnailHeight = (int) (mRes.getDimensionPixelSize(
                         R.dimen.recent_thumbnail_height));
+        mIconSizeId = R.dimen.recent_app_icon_size;
 
         buildCardListAndAdapter();
 
@@ -1176,7 +1178,7 @@ public class RecentPanelView {
                                 card.appIcon = drawable;
                                 postnotifyItemChanged(mCardRecyclerView, card);
                             }
-                }, mScaleFactor);
+                }, mScaleFactor, mIconSizeId);
             }
             // skip thumbs loading process if fast mode enabled
             if (mExpandedMode != EXPANDED_MODE_NEVER && !topTask && loadBitmap) {

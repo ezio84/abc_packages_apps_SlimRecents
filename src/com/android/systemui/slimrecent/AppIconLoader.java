@@ -80,9 +80,9 @@ public class AppIconLoader {
      * @params imageView
      */
     protected void loadAppIcon(ActivityInfo info, String identifier,
-            IconCallback callback, float scaleFactor) {
+            IconCallback callback, float scaleFactor, int iconSizeId) {
         final BitmapDownloaderTask task =
-                new BitmapDownloaderTask(callback, mContext, scaleFactor, identifier);
+                new BitmapDownloaderTask(callback, mContext, scaleFactor, iconSizeId, identifier);
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, info);
     }
 
@@ -98,14 +98,16 @@ public class AppIconLoader {
         private final WeakReference<Context> rContext;
 
         private float mScaleFactor;
+        private int mIconSizeId;
 
         private String mLRUCacheKey;
 
         public BitmapDownloaderTask(IconCallback callback,
-                Context context, float scaleFactor, String identifier) {
+                Context context, float scaleFactor, int iconSizeId, String identifier) {
             mCallback = callback;
             rContext = new WeakReference<Context>(context);
             mScaleFactor = scaleFactor;
+            mIconSizeId = iconSizeId;
             mLRUCacheKey = identifier;
         }
 
@@ -116,7 +118,7 @@ public class AppIconLoader {
                 return null;
             }
             // Load and return bitmap
-            return getAppIcon(params[0], rContext.get(), mScaleFactor);
+            return getAppIcon(params[0], rContext.get(), mScaleFactor, mIconSizeId);
         }
 
         @Override
@@ -150,11 +152,11 @@ public class AppIconLoader {
      * Loads the actual app icon.
      */
     private static Drawable getAppIcon(ActivityInfo info,
-            Context context, float scaleFactor) {
+            Context context, float scaleFactor, int iconSizeId) {
         if (context == null) {
             return null;
         }
-        return IconsHandler.getInstance(context).getIconFromHandler(context, info, scaleFactor);
+        return IconsHandler.getInstance(context).getIconFromHandler(context, info, scaleFactor, iconSizeId);
 
     }
 }

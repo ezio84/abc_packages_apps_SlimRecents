@@ -55,9 +55,9 @@ public class ShadowGenerator {
     private final Paint mDrawPaint;
     private final BlurMaskFilter mDefaultBlurMaskFilter;
 
-    private ShadowGenerator(Context context, float scaleFactor) {
+    private ShadowGenerator(Context context, float scaleFactor, int iconSizeId) {
         mIconSize = (int) (context.getResources()
-                    .getDimensionPixelSize(R.dimen.recent_app_icon_size) * scaleFactor);
+                    .getDimensionPixelSize(iconSizeId) * scaleFactor);
         mCanvas = new Canvas();
         mBlurPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
         mDrawPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
@@ -96,16 +96,22 @@ public class ShadowGenerator {
         return result;
     }
 
-    public static ShadowGenerator getInstance(Context context, float scaleFactor) {
+    public static ShadowGenerator getInstance(Context context, float scaleFactor, int iconSizeId) {
         // TODO: This currently fails as the system default icon also needs a shadow as it
         // uses adaptive icon.
         // Preconditions.assertNonUiThread();
         synchronized (LOCK) {
             if (sShadowGenerator == null) {
-                sShadowGenerator = new ShadowGenerator(context, scaleFactor);
+                sShadowGenerator = new ShadowGenerator(context, scaleFactor, iconSizeId);
             }
         }
         return sShadowGenerator;
+    }
+
+    public static void removeInstance() {
+        if (sShadowGenerator != null) {
+            sShadowGenerator = null;
+        }
     }
 
     /**
