@@ -116,7 +116,6 @@ public class ExpandableCardAdapter
         holder.appName.setText(card.appName);
 
         if (!mFastMode && card.screenshot != null && !card.screenshot.isRecycled()) {
-            holder.screenshot.setThumbnail(card.scaleFactor, card.thumbnailWidth, card.thumbnailHeight);
             holder.screenshot.setImageBitmap(card.screenshot);
         }
     }
@@ -348,9 +347,6 @@ public class ExpandableCardAdapter
         boolean favorite = false;
         Context context;
         String identifier;
-        float scaleFactor;
-        int thumbnailWidth;
-        int thumbnailHeight;
         int index;
         float cornerRadius;
         View.OnClickListener appIconClickListener;

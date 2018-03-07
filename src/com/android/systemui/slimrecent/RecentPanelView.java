@@ -138,8 +138,6 @@ public class RecentPanelView {
     //private static int mOneHandMode:
     private static int mCardColor = 0x0ffffff;
     private int mFirstExpandedItems = 2;
-    private int mThumbnailWidth;
-    private int mThumbnailHeight;
     private Resources mRes;
 
     private String mCurrentFavorites = "";
@@ -180,9 +178,6 @@ public class RecentPanelView {
 
             this.context = mContext;
             this.identifier = task.identifier;
-            this.scaleFactor = mScaleFactor;
-            this.thumbnailHeight = mThumbnailHeight;
-            this.thumbnailWidth = mThumbnailWidth;
 
             this.persistentTaskId = task.persistentTaskId;
             this.packageName = task.packageName;
@@ -390,10 +385,6 @@ public class RecentPanelView {
         mRes = context.getResources();
         mFirstExpandedItems =
                 mRes.getInteger(R.integer.expanded_items_default);
-        mThumbnailWidth = (int) (mRes.getDimensionPixelSize(
-                        R.dimen.recent_thumbnail_width));
-        mThumbnailHeight = (int) (mRes.getDimensionPixelSize(
-                        R.dimen.recent_thumbnail_height));
         mIconSizeId = R.dimen.recent_app_icon_size;
 
         buildCardListAndAdapter();

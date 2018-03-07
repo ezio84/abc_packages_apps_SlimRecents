@@ -90,9 +90,9 @@
                 android:id="@+id/screenshot"
                 android:background="@android:color/transparent"
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:visibility="gone"
-                android:layout_margin="4dp"
-                android:layout_height="@dimen/recent_thumbnail_height" />
+                android:layout_margin="4dp" />
 
         </LinearLayout>
 

@@ -29,6 +29,8 @@ import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
+import com.android.systemui.R;
+
 /**
  * Thanks to a google post from Jorim Jaggy I saw
  * this nice trick to reduce requestLayout calls.
@@ -47,28 +49,28 @@ public class RecentThumbView extends ImageView {
 
     private boolean mBlockLayout;
     private Bitmap mBitmap;
-    private float mScaleFactor;
-    private int mThumbnailWidth;
-    private int mThumbnailHeight;
+    private float mThumbnailHeightToWidthRatio;
 
     public RecentThumbView(Context context) {
         super(context);
+        init(context);
     }
 
     public RecentThumbView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        init(context);
     }
 
     public RecentThumbView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        init(context);
     }
 
-
-    public void setThumbnail(float scaleFactor, int thumbnailWidth, int thumbnailHeight) {
-        mScaleFactor = scaleFactor;
-        mThumbnailWidth = thumbnailWidth;
-        mThumbnailHeight = thumbnailHeight;
+    private void init(Context context) {
+        mThumbnailHeightToWidthRatio = context.getResources()
+                .getInteger(R.integer.recent_thumbnail_height_to_width_ratio_percent) / 100f;
     }
+
 
     @Override
     public void requestLayout() {
@@ -85,6 +87,14 @@ public class RecentThumbView extends ImageView {
     }
 
     @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        int width = getMeasuredWidth();
+        int height = (int) (width * mThumbnailHeightToWidthRatio);
+        setMeasuredDimension(width, height);
+    }
+
+    @Override
     protected void onDraw(Canvas canvas) {
         Drawable drawable = getDrawable();
         if (drawable != null && drawable instanceof BitmapDrawable) {
@@ -97,14 +107,15 @@ public class RecentThumbView extends ImageView {
                             Paint.FILTER_BITMAP_FLAG));*/
             int h = bitmap.getHeight();
             int w = bitmap.getWidth();
+            int myWidth = getMeasuredWidth();
+            int myHeight = getMeasuredHeight();
             Rect src;
-            if ((((float) h) / mThumbnailHeight) > (((float) w) / mThumbnailWidth)) {
-                src = new Rect(0, 0, w, mThumbnailHeight*w/mThumbnailWidth);
+            if ((((float) h) / myHeight) > (((float) w) / myWidth)) {
+                src = new Rect(0, 0, w, myHeight*w/myWidth);
             } else {
-                src = new Rect(0, 0, mThumbnailWidth*h/mThumbnailHeight, h);
+                src = new Rect(0, 0, myWidth*h/myHeight, h);
             }
-            final RectF targetRect = new RectF(0.0f, 0.0f,
-                    mThumbnailWidth*mScaleFactor, mThumbnailHeight*mScaleFactor);
+            final RectF targetRect = new RectF(0.0f, 0.0f, myWidth, myHeight);
             canvas.drawBitmap(bitmap, src, targetRect, null);
         }
     }
