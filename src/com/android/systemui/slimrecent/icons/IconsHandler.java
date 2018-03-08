@@ -284,6 +284,7 @@ public class IconsHandler {
             mDrawables.clear();
             mCurrentIconPackRes = null;
             mOriginalIconPackRes = null;
+            resetIconNormalizer();
         }
         if (!TextUtils.isEmpty(mIconPackPackageName)) {
             loadIconPack(iconPack, false);
