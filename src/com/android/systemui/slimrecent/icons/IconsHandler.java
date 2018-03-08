@@ -240,7 +240,7 @@ public class IconsHandler {
         }
 
         Bitmap wrapped = RecentPanelIcons.createBadgedIconBitmap(d, Process.myUserHandle(),
-                mContext, Build.VERSION.SDK_INT, true, scaleFactor, iconSizeId);
+                mContext, Build.VERSION.SDK_INT, false, scaleFactor, iconSizeId);
 
         Random random = new Random();
         int id = random.nextInt(mBackImages.size());
