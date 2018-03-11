@@ -48,14 +48,15 @@ public class RecentPanelIcons {
     /**
      * Returns a bitmap which is of the appropriate size to be displayed as an icon
      */
-    public static Bitmap createIconBitmap(Bitmap icon, Context context, float scaleFactor, int iconSizeId) {
+    public static Bitmap createIconBitmap(Bitmap icon, Context context,
+            IconNormalizer normalizer, ShadowGenerator shadowGenerator) {
         final int iconBitmapSize = (int) (context.getResources()
-                .getDimensionPixelSize(iconSizeId) * scaleFactor);
+                .getDimensionPixelSize(normalizer.getIconSizeId()) * normalizer.getScaleFactor());
 
         if (iconBitmapSize == icon.getWidth() && iconBitmapSize == icon.getHeight()) {
             return icon;
         }
-        return createIconBitmap(new BitmapDrawable(context.getResources(), icon), context, scaleFactor, iconSizeId);
+        return createIconBitmap(new BitmapDrawable(context.getResources(), icon), context, normalizer, shadowGenerator);
     }
 
     /**
@@ -64,16 +65,15 @@ public class RecentPanelIcons {
      */
 
     public static Bitmap createBadgedIconBitmap(
-            Drawable icon, UserHandle user, Context context, int iconAppTargetSdk, boolean forceWrap, float scaleFactor, int iconSizeId) {
-        IconNormalizer normalizer;
+            IconNormalizer normalizer, ShadowGenerator shadowGenerator, Drawable icon,
+            UserHandle user, Context context, int iconAppTargetSdk, boolean forceWrap, boolean defaultIconPack) {
         float scale = 1f;
-        normalizer = IconNormalizer.getInstance(context, scaleFactor, iconSizeId);
         boolean[] outShape = new boolean[1];
         AdaptiveIconDrawable dr = (AdaptiveIconDrawable)
                 context.getDrawable(R.drawable.adaptive_icon_drawable_wrapper).mutate();
         dr.setBounds(0, 0, 1, 1);
         scale = normalizer.getScale(icon, null, dr.getIconMask(), outShape);
-        if ((forceWrap || isDefaultIconPack(context, scaleFactor, iconSizeId))
+        if ((forceWrap || defaultIconPack)
                 && !outShape[0]){
             Drawable wrappedIcon = wrapToAdaptiveIconDrawable(context, icon, scale);
             if (wrappedIcon != icon) {
@@ -81,21 +81,18 @@ public class RecentPanelIcons {
                 scale = normalizer.getScale(icon, null, null, null);
             }
         }
-        Bitmap bitmap = createIconBitmap(icon, context, scale, scaleFactor, iconSizeId);
+        Bitmap bitmap = createIconBitmap(icon, context, scale, normalizer, shadowGenerator);
         if (icon instanceof AdaptiveIconDrawable) {
-            bitmap = ShadowGenerator.getInstance(context, scaleFactor, iconSizeId).recreateIcon(bitmap);
+            bitmap = shadowGenerator.recreateIcon(bitmap);
         }
-        return badgeIconForUser(bitmap, user, context, scaleFactor, iconSizeId);
-    }
-
-    public static boolean isDefaultIconPack(Context context, float scaleFactor, int iconSizeId) {
-        return IconsHandler.getInstance(context).isDefaultIconPack();
+        return badgeIconForUser(bitmap, user, context, normalizer, shadowGenerator);
     }
 
     /**
      * Badges the provided icon with the user badge if required.
      */
-    public static Bitmap badgeIconForUser(Bitmap icon, UserHandle user, Context context, float scaleFactor, int iconSizeId) {
+    public static Bitmap badgeIconForUser(Bitmap icon, UserHandle user, Context context,
+            IconNormalizer normalizer, ShadowGenerator shadowGenerator) {
         if (user != null && !Process.myUserHandle().equals(user)) {
             BitmapDrawable drawable = new FixedSizeBitmapDrawable(icon);
             Drawable badged = context.getPackageManager().getUserBadgedIcon(
@@ -103,7 +100,7 @@ public class RecentPanelIcons {
             if (badged instanceof BitmapDrawable) {
                 return ((BitmapDrawable) badged).getBitmap();
             } else {
-                return createIconBitmap(badged, context, scaleFactor, iconSizeId);
+                return createIconBitmap(badged, context, normalizer, shadowGenerator);
             }
         } else {
             return icon;
@@ -134,14 +131,15 @@ public class RecentPanelIcons {
     /**
      * Returns a bitmap suitable for the all apps view.
      */
-    public static Bitmap createIconBitmap(Drawable icon, Context context, float scaleFactor, int iconSizeId) {
+    public static Bitmap createIconBitmap(Drawable icon, Context context,
+            IconNormalizer normalizer, ShadowGenerator shadowGenerator) {
         float scale = 1f;
         if (icon instanceof AdaptiveIconDrawable) {
             scale = ShadowGenerator.getScaleForBounds(new RectF(0, 0, 0, 0));
         }
-        Bitmap bitmap =  createIconBitmap(icon, context, scale, scaleFactor, iconSizeId);
+        Bitmap bitmap =  createIconBitmap(icon, context, scale, normalizer, shadowGenerator);
         if (icon instanceof AdaptiveIconDrawable) {
-            bitmap = ShadowGenerator.getInstance(context, scaleFactor, iconSizeId).recreateIcon(bitmap);
+            bitmap = shadowGenerator.recreateIcon(bitmap);
         }
         return bitmap;
     }
@@ -149,10 +147,11 @@ public class RecentPanelIcons {
     /**
      * @param scale the scale to apply before drawing {@param icon} on the canvas
      */
-    public static Bitmap createIconBitmap(Drawable icon, Context context, float scale, float scaleFactor, int iconSizeId) {
+    public static Bitmap createIconBitmap(Drawable icon, Context context, float scale,
+            IconNormalizer normalizer, ShadowGenerator shadowGenerator) {
         synchronized (sCanvas) {
             final int iconBitmapSize = (int) (context.getResources()
-                    .getDimensionPixelSize(iconSizeId) * scaleFactor);
+                    .getDimensionPixelSize(normalizer.getIconSizeId()) * normalizer.getScaleFactor());
             int width = iconBitmapSize;
             int height = iconBitmapSize;
 

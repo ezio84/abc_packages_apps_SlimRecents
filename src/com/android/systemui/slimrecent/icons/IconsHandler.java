@@ -67,22 +67,24 @@ public class IconsHandler {
 
     private float mFactor = 1.0f;
 
-    private static IconsHandler sInstance;
+    private int mIconSizeId;
 
-    public static IconsHandler getInstance(Context context) {
-        if (sInstance == null){
-            sInstance = new IconsHandler();
-        }
-        sInstance.setContext(context);
-        return sInstance;
-    }
+    private IconNormalizer mIconNormalizer;
+    private ShadowGenerator mShadowGenerator;
 
-    public IconsHandler() {
-    }
-
-    private void setContext(Context context) {
+    public IconsHandler(Context context, int iconSizeId, float scaleFactor) {
         mContext = context;
+        mIconSizeId = iconSizeId;
         mPackageManager = context.getPackageManager();
+        mIconNormalizer = new IconNormalizer(context, iconSizeId, scaleFactor);
+        mShadowGenerator = new ShadowGenerator(context, iconSizeId, scaleFactor);
+    }
+
+    public void setScaleFactor(float scaleFactor) {
+        mIconNormalizer = null;
+        mShadowGenerator = null;
+        mIconNormalizer = new IconNormalizer(mContext, mIconSizeId, scaleFactor);
+        mShadowGenerator = new ShadowGenerator(mContext, mIconSizeId, scaleFactor);
     }
 
     private void loadIconPack(String packageName, boolean fallback) {
@@ -163,13 +165,13 @@ public class IconsHandler {
         }
     }
 
-    public Drawable getIconFromHandler(Context context, ActivityInfo info, float scaleFactor, int iconSizeId) {
+    public Drawable getIconFromHandler(Context context, ActivityInfo info) {
     ComponentName name = new ComponentName(info.applicationInfo.packageName, info.name);
-        Bitmap bm = getDrawableIconForPackage(name, scaleFactor, iconSizeId);
+        Bitmap bm = getDrawableIconForPackage(name);
         if (bm == null) {
             return null;
         }
-        return new BitmapDrawable(context.getResources(), RecentPanelIcons.createIconBitmap(bm, context, scaleFactor, iconSizeId));
+        return new BitmapDrawable(context.getResources(), RecentPanelIcons.createIconBitmap(bm, context, mIconNormalizer, mShadowGenerator));
     }
 
     public boolean isDefaultIconPack() {
@@ -206,7 +208,7 @@ public class IconsHandler {
         return null;
     }
 
-    private Bitmap getDefaultAppDrawable(ComponentName componentName, float scaleFactor, int iconSizeId) {
+    private Bitmap getDefaultAppDrawable(ComponentName componentName) {
         Drawable drawable = null;
         try {
             drawable = mPackageManager.getApplicationIcon(mPackageManager.getApplicationInfo(
@@ -218,10 +220,10 @@ public class IconsHandler {
             return null;
         }
 
-        return generateBitmap(componentName, RecentPanelIcons.createIconBitmap(drawable, mContext, scaleFactor, iconSizeId), scaleFactor, iconSizeId);
+        return generateBitmap(componentName, RecentPanelIcons.createIconBitmap(drawable, mContext, mIconNormalizer, mShadowGenerator));
     }
 
-    public Bitmap getDrawableIconForPackage(ComponentName componentName, float scaleFactor, int iconSizeId) {
+    public Bitmap getDrawableIconForPackage(ComponentName componentName) {
 
         String drawableName = mAppFilterDrawables.get(componentName.toString());
         Drawable drawable = loadDrawable(null, drawableName, false);
@@ -230,18 +232,18 @@ public class IconsHandler {
             return bitmap;
         }
 
-        return getDefaultAppDrawable(componentName, scaleFactor, iconSizeId);
+        return getDefaultAppDrawable(componentName);
     }
 
-    private Bitmap generateBitmap(ComponentName componentName, Bitmap defaultBitmap, float scaleFactor, int iconSizeId) {
+    private Bitmap generateBitmap(ComponentName componentName, Bitmap defaultBitmap) {
         Drawable d = new BitmapDrawable(mContext.getResources(), defaultBitmap);
         if (mBackImages.isEmpty()) {
-            return RecentPanelIcons.createBadgedIconBitmap(d, Process.myUserHandle(),
-                    mContext, Build.VERSION.SDK_INT, true, scaleFactor, iconSizeId);
+            return RecentPanelIcons.createBadgedIconBitmap(mIconNormalizer, mShadowGenerator, d, Process.myUserHandle(),
+                    mContext, Build.VERSION.SDK_INT, true, isDefaultIconPack());
         }
 
-        Bitmap wrapped = RecentPanelIcons.createBadgedIconBitmap(d, Process.myUserHandle(),
-                mContext, Build.VERSION.SDK_INT, false, scaleFactor, iconSizeId);
+        Bitmap wrapped = RecentPanelIcons.createBadgedIconBitmap(mIconNormalizer, mShadowGenerator, d, Process.myUserHandle(),
+                mContext, Build.VERSION.SDK_INT, false, isDefaultIconPack());
 
         Random random = new Random();
         int id = random.nextInt(mBackImages.size());
@@ -253,8 +255,7 @@ public class IconsHandler {
         Canvas canvas = new Canvas(result);
         canvas.drawBitmap(backImage, 0, 0, null);
 
-        IconNormalizer normalizer = IconNormalizer.getInstance(mContext, scaleFactor, iconSizeId);
-        if (!normalizer.isTransparentBitmap(backImage)) {
+        if (!mIconNormalizer.isTransparentBitmap(backImage)) {
             mFactor = 0.7f;
         }
         Bitmap scaledBitmap = Bitmap.createScaledBitmap(wrapped,
@@ -283,23 +284,18 @@ public class IconsHandler {
         }
         mIconPackPackageName = iconPack;
         if (!TextUtils.isEmpty(iconPack) || TextUtils.isEmpty(mIconPackPackageName)) {
-            CacheController.getInstance(mContext, null).clearCache();
-            mAppFilterDrawables.clear();
-            mBackImages.clear();
-            mDrawables.clear();
-            mCurrentIconPackRes = null;
-            mOriginalIconPackRes = null;
-            resetIconNormalizer();
+            refresh();
         }
         if (!TextUtils.isEmpty(mIconPackPackageName)) {
             loadIconPack(iconPack, false);
         }
     }
 
-    public void resetIconNormalizer() {
-        //TODO: we need different instances for different Recents mode, so the Singleton class is
-        // not really usefull, a normal class would be good
-        IconNormalizer.removeInstance();
-        ShadowGenerator.removeInstance();
+    public void refresh() {
+        mAppFilterDrawables.clear();
+        mBackImages.clear();
+        mDrawables.clear();
+        mCurrentIconPackRes = null;
+        mOriginalIconPackRes = null;
     }
 }

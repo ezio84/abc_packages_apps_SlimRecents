@@ -89,7 +89,12 @@ public class IconNormalizer {
     private int mFileId;
     private final Random mRandom;
 
-    private IconNormalizer(Context context, float scaleFactor, int iconSizeId) {
+    private float mScaleFactor;
+    private int mIconSizeId;
+
+    public IconNormalizer(Context context, int iconSizeId, float scaleFactor) {
+        mScaleFactor = scaleFactor;
+        mIconSizeId = iconSizeId;
         // Use twice the icon size as maximum size to avoid scaling down twice.
         mMaxSize = ((int) (context.getResources()
                     .getDimensionPixelSize(iconSizeId) * scaleFactor)) * 2;
@@ -125,6 +130,14 @@ public class IconNormalizer {
 
         mDir = context.getExternalFilesDir(null);
         mRandom = new Random();
+    }
+
+    public float getScaleFactor() {
+        return mScaleFactor;
+    }
+
+    public int getIconSizeId() {
+        return mIconSizeId;
     }
 
     /**
@@ -411,21 +424,6 @@ public class IconNormalizer {
                 xCoordinates[j] = xCoordinates[start] + lastAngle * (j - start);
             }
             last = i;
-        }
-    }
-
-    public static IconNormalizer getInstance(Context context, float scaleFactor, int iconSizeId) {
-        synchronized (LOCK) {
-            if (sIconNormalizer == null) {
-                sIconNormalizer = new IconNormalizer(context, scaleFactor, iconSizeId);
-            }
-        }
-        return sIconNormalizer;
-    }
-
-    public static void removeInstance() {
-        if (sIconNormalizer != null) {
-            sIconNormalizer = null;
         }
     }
 }

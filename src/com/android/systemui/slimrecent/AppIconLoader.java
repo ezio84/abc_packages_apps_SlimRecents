@@ -80,9 +80,9 @@ public class AppIconLoader {
      * @params imageView
      */
     protected void loadAppIcon(ActivityInfo info, String identifier,
-            IconCallback callback, float scaleFactor, int iconSizeId) {
+            IconCallback callback, IconsHandler ih) {
         final BitmapDownloaderTask task =
-                new BitmapDownloaderTask(callback, mContext, scaleFactor, iconSizeId, identifier);
+                new BitmapDownloaderTask(callback, mContext, identifier, ih);
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, info);
     }
 
@@ -97,18 +97,16 @@ public class AppIconLoader {
         private IconCallback mCallback;
         private final WeakReference<Context> rContext;
 
-        private float mScaleFactor;
-        private int mIconSizeId;
-
         private String mLRUCacheKey;
 
+        private IconsHandler mIconsHandler;
+
         public BitmapDownloaderTask(IconCallback callback,
-                Context context, float scaleFactor, int iconSizeId, String identifier) {
+                Context context, String identifier, IconsHandler ih) {
             mCallback = callback;
             rContext = new WeakReference<Context>(context);
-            mScaleFactor = scaleFactor;
-            mIconSizeId = iconSizeId;
             mLRUCacheKey = identifier;
+            mIconsHandler = ih;
         }
 
         @Override
@@ -118,7 +116,7 @@ public class AppIconLoader {
                 return null;
             }
             // Load and return bitmap
-            return getAppIcon(params[0], rContext.get(), mScaleFactor, mIconSizeId);
+            return getAppIcon(params[0], rContext.get(), mIconsHandler);
         }
 
         @Override
@@ -152,11 +150,11 @@ public class AppIconLoader {
      * Loads the actual app icon.
      */
     private static Drawable getAppIcon(ActivityInfo info,
-            Context context, float scaleFactor, int iconSizeId) {
+            Context context, IconsHandler ih) {
         if (context == null) {
             return null;
         }
-        return IconsHandler.getInstance(context).getIconFromHandler(context, info, scaleFactor, iconSizeId);
+        return ih.getIconFromHandler(context, info);
 
     }
 }

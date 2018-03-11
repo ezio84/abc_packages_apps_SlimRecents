@@ -66,6 +66,7 @@ import android.widget.ImageView;
 import com.android.systemui.R;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.ExpandableCard;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.OptionsItem;
+import com.android.systemui.slimrecent.icons.IconsHandler;
 import com.android.systemui.stackdivider.WindowManagerProxy;
 
 import java.io.IOException;
@@ -148,6 +149,8 @@ public class RecentPanelView {
     private PackageManager mPm;
     private ActivityManager mAm;
     private IActivityManager mIam;
+
+    private IconsHandler mIconsHandler;
 
     final static BitmapFactory.Options sBitmapOptions;
 
@@ -1169,7 +1172,7 @@ public class RecentPanelView {
                                 card.appIcon = drawable;
                                 postnotifyItemChanged(mCardRecyclerView, card);
                             }
-                }, mScaleFactor, mIconSizeId);
+                }, mIconsHandler);
             }
             // skip thumbs loading process if fast mode enabled
             if (mExpandedMode != EXPANDED_MODE_NEVER && !topTask && loadBitmap) {
@@ -1227,6 +1230,10 @@ public class RecentPanelView {
                 tasksLoaded();
             }
         }
+    }
+
+    public void setIconsHandler(IconsHandler ih) {
+        mIconsHandler = ih;
     }
 
     private CacheController.EvictionCallback mClearThumbOnEviction =
