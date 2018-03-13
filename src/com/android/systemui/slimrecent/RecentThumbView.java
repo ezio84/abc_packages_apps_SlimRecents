@@ -16,6 +16,7 @@
 
 package com.android.systemui.slimrecent;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -102,7 +103,7 @@ public class RecentThumbView extends ImageView {
             if (bitmap != null && bitmap.isRecycled()) {
                 return;
             }
-            canvas.setHwBitmapsInSwModeEnabled(false);
+            canvas.setHwBitmapsInSwModeEnabled(!ActivityManager.ENABLE_TASK_SNAPSHOTS);
             /*canvas.setDrawFilter(new PaintFlagsDrawFilter(Paint.ANTI_ALIAS_FLAG,
                             Paint.FILTER_BITMAP_FLAG));*/
             int h = bitmap.getHeight();
