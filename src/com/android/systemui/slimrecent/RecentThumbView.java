@@ -103,7 +103,9 @@ public class RecentThumbView extends ImageView {
             if (bitmap != null && bitmap.isRecycled()) {
                 return;
             }
-            canvas.setHwBitmapsInSwModeEnabled(!ActivityManager.ENABLE_TASK_SNAPSHOTS);
+            if (!canvas.isHardwareAccelerated()) {
+                return;
+            }
             /*canvas.setDrawFilter(new PaintFlagsDrawFilter(Paint.ANTI_ALIAS_FLAG,
                             Paint.FILTER_BITMAP_FLAG));*/
             int h = bitmap.getHeight();
