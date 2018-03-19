@@ -788,6 +788,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
     public boolean onConfigurationChanged(Configuration newConfig) {
         if (mConfiguration.densityDpi != newConfig.densityDpi) {
             hideRecents(true);
+            evictAllCaches();
+            mIconsHandler.onDpiChanged(mContext);
             rebuildRecentsScreen();
         }
         mConfiguration.updateFrom(newConfig);

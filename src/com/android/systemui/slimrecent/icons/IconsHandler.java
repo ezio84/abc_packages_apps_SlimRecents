@@ -69,20 +69,21 @@ public class IconsHandler {
 
     private int mIconSizeId;
 
+    private float mScaleFactor;
+
     private IconNormalizer mIconNormalizer;
     private ShadowGenerator mShadowGenerator;
 
     public IconsHandler(Context context, int iconSizeId, float scaleFactor) {
         mContext = context;
         mIconSizeId = iconSizeId;
+        mScaleFactor = scaleFactor;
         mPackageManager = context.getPackageManager();
         mIconNormalizer = new IconNormalizer(context, iconSizeId, scaleFactor);
         mShadowGenerator = new ShadowGenerator(context, iconSizeId, scaleFactor);
     }
 
     public void setScaleFactor(float scaleFactor) {
-        mIconNormalizer = null;
-        mShadowGenerator = null;
         mIconNormalizer = new IconNormalizer(mContext, mIconSizeId, scaleFactor);
         mShadowGenerator = new ShadowGenerator(mContext, mIconSizeId, scaleFactor);
     }
@@ -279,7 +280,11 @@ public class IconsHandler {
     }
 
     public void updatePrefs(String iconPack) {
-        if (iconPack == null || iconPack.equals(mIconPackPackageName)) {
+        updatePrefs(iconPack, false);
+    }
+
+    public void updatePrefs(String iconPack, boolean force) {
+        if (iconPack == null || (!force && iconPack.equals(mIconPackPackageName))) {
             return;
         }
         mIconPackPackageName = iconPack;
@@ -295,7 +300,16 @@ public class IconsHandler {
         mAppFilterDrawables.clear();
         mBackImages.clear();
         mDrawables.clear();
+        mFrontImage = null;
+        mMaskImage = null;
         mCurrentIconPackRes = null;
         mOriginalIconPackRes = null;
+    }
+
+    public void onDpiChanged(Context ctx) {
+        mContext = ctx;
+        mIconNormalizer = new IconNormalizer(ctx, mIconSizeId, mScaleFactor);
+        mShadowGenerator = new ShadowGenerator(ctx, mIconSizeId, mScaleFactor);
+        updatePrefs(mIconPackPackageName, true);
     }
 }
