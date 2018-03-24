@@ -52,6 +52,7 @@ public class IconsHandler {
     private static final String TAG = "IconsHandler";
 
     private Map<String, String> mAppFilterDrawables = new HashMap<>();
+    private List<String> mComponentNames = new ArrayList<>();
     private List<Bitmap> mBackImages = new ArrayList<>();
     private List<String> mDrawables = new ArrayList<>();
 
@@ -154,6 +155,7 @@ public class IconsHandler {
                             }
                             if (!fallback && componentName != null && drawableName != null &&
                                     !mAppFilterDrawables.containsKey(componentName)) {
+                                mComponentNames.add(componentName);
                                 mAppFilterDrawables.put(componentName, drawableName);
                             }
                         }
@@ -225,8 +227,19 @@ public class IconsHandler {
     }
 
     public Bitmap getDrawableIconForPackage(ComponentName componentName) {
-
         String drawableName = mAppFilterDrawables.get(componentName.toString());
+
+        if (drawableName == null) {
+            // fallback to the MainActivity icon if provided by the iconpack for this package
+            final String packageName = componentName.getPackageName();
+            for (String name : mComponentNames) {
+                if (name.contains("MainActivity") && name.contains(packageName)) {
+                    drawableName = mAppFilterDrawables.get(name);
+                    break;
+                }
+            }
+        }
+
         Drawable drawable = loadDrawable(null, drawableName, false);
         if (drawable != null && drawable instanceof BitmapDrawable) {
             Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
