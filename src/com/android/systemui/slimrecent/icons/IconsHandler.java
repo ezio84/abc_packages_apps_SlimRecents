@@ -18,6 +18,7 @@ package com.android.systemui.slimrecent.icons;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -167,8 +168,15 @@ public class IconsHandler {
     }
 
     public Drawable getIconFromHandler(Context context, ActivityInfo info) {
-    ComponentName name = new ComponentName(info.applicationInfo.packageName, info.name);
-        Bitmap bm = getDrawableIconForPackage(name);
+        final String packageName = info.applicationInfo.packageName;
+        Intent launchIntent = mPackageManager.getLaunchIntentForPackage(packageName);
+        ComponentName defaultName = null;
+        if (launchIntent != null) {
+            defaultName = launchIntent.getComponent();
+        }
+        ComponentName name = new ComponentName(packageName, info.name);
+
+        Bitmap bm = getDrawableIconForPackage(name, defaultName);
         if (bm == null) {
             return null;
         }
@@ -224,9 +232,11 @@ public class IconsHandler {
         return generateBitmap(componentName, RecentPanelIcons.createIconBitmap(drawable, mContext, mIconNormalizer, mShadowGenerator));
     }
 
-    public Bitmap getDrawableIconForPackage(ComponentName componentName) {
-
+    public Bitmap getDrawableIconForPackage(ComponentName componentName, ComponentName defaultName) {
         String drawableName = mAppFilterDrawables.get(componentName.toString());
+        if (drawableName == null && defaultName != null) {
+            drawableName = mAppFilterDrawables.get(defaultName.toString());
+        }
         Drawable drawable = loadDrawable(null, drawableName, false);
         if (drawable != null && drawable instanceof BitmapDrawable) {
             Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
