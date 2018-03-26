@@ -87,6 +87,7 @@ public class IconsHandler {
     public void setScaleFactor(float scaleFactor) {
         mIconNormalizer = new IconNormalizer(mContext, mIconSizeId, scaleFactor);
         mShadowGenerator = new ShadowGenerator(mContext, mIconSizeId, scaleFactor);
+        updatePrefs(mIconPackPackageName, true);
     }
 
     private void loadIconPack(String packageName, boolean fallback) {
