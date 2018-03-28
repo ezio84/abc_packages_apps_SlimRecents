@@ -44,6 +44,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.media.MediaMetadata;
 import android.net.Uri;
 //import android.os.Bundle;
 import android.os.Handler;
@@ -1255,4 +1256,16 @@ public class RecentController implements RecentPanelView.OnExitListener,
             return true;
         }
     };
+
+    public void setMediaPlaying(boolean playing, String packageName) {
+        mRecentPanelView.setMediaPlaying(playing, packageName);
+    }
+
+    public void setMediaInfo(MediaMetadata mediaMetaData) {
+        mRecentPanelView.setMediaInfo(mediaMetaData);
+    }
+
+    public void setMediaColors(boolean colorizedMedia, int[] colors) {
+        mRecentPanelView.setMediaColors(colorizedMedia ? colors[0] : -1);
+    }
 }

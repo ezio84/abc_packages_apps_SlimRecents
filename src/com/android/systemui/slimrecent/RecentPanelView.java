@@ -42,6 +42,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.Paint;
 import android.graphics.PaintFlagsDrawFilter;
 import android.graphics.RectF;
+import android.media.MediaMetadata;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -76,6 +77,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static android.app.ActivityManager.StackId.PINNED_STACK_ID;
 import static android.app.ActivityManager.StackId.RECENTS_STACK_ID;
@@ -151,6 +153,11 @@ public class RecentPanelView {
     private IActivityManager mIam;
 
     private IconsHandler mIconsHandler;
+
+    private int mMediaColor = -1;
+    private boolean mMediaPlaying;
+    private String mMediaPackageName = "";
+    private MediaMetadata mMediaMetaData;
 
     final static BitmapFactory.Options sBitmapOptions;
 
@@ -1195,8 +1202,12 @@ public class RecentPanelView {
 
             // Set card color
             card.cardBackgroundColor = getCardBackgroundColor(task);
+
             //Set corner radius
             card.cornerRadius = mCornerRadius;
+
+            //Set card title
+            card.appName = getCardTitle(task, card);
 
             mCounter++;
             publishProgress(card);
@@ -1262,12 +1273,104 @@ public class RecentPanelView {
     }
 
     private int getCardBackgroundColor(TaskDescription task) {
-        if (mCardColor != 0x0ffffff) {
+        if (mCardColor != 0x0ffffff/* &&
+                !(task != null && mMediaPlaying
+                && task.packageName.toLowerCase().equals(mMediaPackageName) && mMediaColor != -1)*/) {
+            // uncomment above lines in the "if" and in the setMediaColors method to get the albumart color
+            // also if the user sets a custom cards color
             return mCardColor;
+        } else if (task != null && mMediaPlaying
+                && task.packageName.toLowerCase().equals(mMediaPackageName) && mMediaColor != -1) {
+            return mMediaColor;
         } else if (task != null && task.cardColor != 0) {
             return task.cardColor;
         } else {
             return mRes.getColor(R.color.recents_task_bar_default_background_color);
+        }
+    }
+
+    private String getCardTitle(TaskDescription task, RecentCard card) {
+        // if the app is the current media player and a song is playing
+        // we set track infos as title
+        if (task != null && mMediaPlaying
+                && task.packageName.toLowerCase().equals(mMediaPackageName)) {
+            card.packageName = mMediaPackageName;
+            final String info = getTrackInfo();
+            if (info != null) {
+                return info;
+            }
+        }
+        // no infos, return original app title
+        return card.appName;
+    }
+
+    private String getTrackInfo() {
+        CharSequence charSequence = null;
+        CharSequence lenghtInfo = null;
+        if (mMediaMetaData != null) {
+            CharSequence artist = mMediaMetaData.getText(MediaMetadata.METADATA_KEY_ARTIST);
+            CharSequence album = mMediaMetaData.getText(MediaMetadata.METADATA_KEY_ALBUM);
+            CharSequence title = mMediaMetaData.getText(MediaMetadata.METADATA_KEY_TITLE);
+            long duration = mMediaMetaData.getLong(MediaMetadata.METADATA_KEY_DURATION);
+            if (artist != null && album != null && title != null) {
+                charSequence = artist.toString() /*+ " - " + album.toString()*/ + " - " + title.toString();
+                if (duration != 0) {
+                    lenghtInfo = String.format("%02d:%02d",
+                            TimeUnit.MILLISECONDS.toMinutes(duration),
+                            TimeUnit.MILLISECONDS.toSeconds(duration) -
+                            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration))
+                    );
+                }
+            }
+        }
+        if (charSequence != null && lenghtInfo != null) {
+            return (charSequence + " - " + lenghtInfo).toString();
+        } else if (charSequence != null) {
+            return charSequence.toString();
+        }
+        return null;
+    }
+
+    public void setMediaPlaying(boolean playing, String packageName) {
+        mMediaPlaying = playing;
+        mMediaPackageName = packageName;
+    }
+
+    public void setMediaInfo(MediaMetadata mediaMetaData) {
+        mMediaMetaData = mediaMetaData;
+        // if we have already set track info for a card and the panel is showing,
+        // update card track infos in real time
+        if (mController.isShowing()) {
+            int count = mCardAdapter.getItemCount();
+            for (int i = 0; i < count; i++) {
+                RecentCard card = (RecentCard) mCardAdapter.getCard(i);
+                if (card.packageName.equals(mMediaPackageName)) {
+                    String info = getTrackInfo();
+                    if (info != null) {
+                        card.appName  = info;
+                        // postnotifyItemChanged will be called later by setMediaColors
+                        // (from Statusbar class we call it after setMediaInfo)
+                    }
+                }
+            }
+        }
+    }
+
+    public void setMediaColors(int color) {
+        mMediaColor = color;
+        // if we have already set albumart color for a card and the panel is showing,
+        // update card color now
+        if (mController.isShowing()) {
+            int count = mCardAdapter.getItemCount();
+            for (int i = 0; i < count; i++) {
+                RecentCard card = (RecentCard) mCardAdapter.getCard(i);
+                if (card.packageName.equals(mMediaPackageName)) {
+                    if (mCardColor == 0x0ffffff && color != -1) {
+                        card.cardBackgroundColor  = color;
+                    }
+                    postnotifyItemChanged(mCardRecyclerView, card);
+                }
+            }
         }
     }
 
