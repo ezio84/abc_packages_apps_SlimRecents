@@ -61,7 +61,7 @@ public abstract class UserContentObserver extends ContentObserver {
         mUpdateRunnable = new Runnable() {
             @Override
             public void run() {
-                update();
+                update(false);
             }
         };
     }
@@ -88,9 +88,10 @@ public abstract class UserContentObserver extends ContentObserver {
      *  Always invoked on the handler passed in at construction
      */
     protected void update(Uri uri) {
-        update();
+        update(false);
     }
-    protected abstract void update();
+
+    protected abstract void update(boolean firstBoot);
 
     @Override
     public void onChange(boolean selfChange, Uri uri) {
