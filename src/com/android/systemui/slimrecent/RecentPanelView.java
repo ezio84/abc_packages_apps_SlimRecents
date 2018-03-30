@@ -684,6 +684,8 @@ public class RecentPanelView {
      * Remove all applications. Call from controller class
      */
     protected boolean removeAllApplications() {
+        final Set<Integer> favorites = new HashSet<Integer>();
+
         boolean hasFavorite = false;
         int size = mCardAdapter.getItemCount() - 1;
         for (int i = size; i >= 0; i--) {
@@ -691,18 +693,28 @@ public class RecentPanelView {
             TaskDescription td = card.task;
             // User favorites are not removed.
             if (td.getIsFavorite()) {
+                favorites.add(td.persistentTaskId);
                 hasFavorite = true;
                 continue;
-            }
-            // Remove from task stack.
-            if (mAm != null) {
-                mAm.removeTask(td.persistentTaskId);
             }
             // Remove the card.
             removeRecentCard(card);
             // Remove expanded state.
             removeExpandedTaskState(td.identifier);
         }
+
+        final List<ActivityManager.RecentTaskInfo> recentTasks = getAllRecentTasks();
+        for (int i = 0; i < recentTasks.size(); i++) {
+            final ActivityManager.RecentTaskInfo recentInfo = recentTasks.get(i);
+            if (!favorites.isEmpty() && favorites.contains(recentInfo.persistentId)) {
+                // skip favorite apps
+                continue;
+            }
+            if (mAm != null) {
+                mAm.removeTask(recentInfo.persistentId);
+            }
+        }
+
         return !hasFavorite;
     }
 
@@ -1040,16 +1052,9 @@ public class RecentPanelView {
             int firstItems = 0;
             final ArrayList<TaskDescription> nonFavoriteTasks = new ArrayList<>();
 
-            SystemServicesProxy ssp = Recents.getSystemServices();
-            int currentUserId = ssp.getCurrentUser();
-            updateCurrentQuietProfilesCache(currentUserId);
-            final List<ActivityManager.RecentTaskInfo> recentTasks =
-                    ssp.getRecentTasks(ActivityManager.getMaxRecentTasksStatic(),
-                    currentUserId, false/*includeFrontMostExcludedTask*/, mCurrentQuietProfiles);
+            final List<ActivityManager.RecentTaskInfo> recentTasks = getAllRecentTasks();
 
-            final int numTasks = recentTasks.size();
-
-            for (int i = 0; i < numTasks; i++) {
+            for (int i = 0; i < recentTasks.size(); i++) {
 
                 // If we reach max apps limit set by user, we are done
                 if (mCounter >= mMaxAppsToLoad) {
@@ -1247,6 +1252,14 @@ public class RecentPanelView {
                 tasksLoaded();
             }
         }
+    }
+
+    private List<ActivityManager.RecentTaskInfo> getAllRecentTasks() {
+        SystemServicesProxy ssp = Recents.getSystemServices();
+        int currentUserId = ssp.getCurrentUser();
+        updateCurrentQuietProfilesCache(currentUserId);
+        return ssp.getRecentTasks(ActivityManager.getMaxRecentTasksStatic(),
+                currentUserId, false/*includeFrontMostExcludedTask*/, mCurrentQuietProfiles);
     }
 
     private void updateCurrentQuietProfilesCache(int currentUserId) {
