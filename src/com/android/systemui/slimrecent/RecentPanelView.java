@@ -33,6 +33,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
+import android.content.pm.UserInfo;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -51,6 +52,7 @@ import android.os.ParcelFileDescriptor;
 import android.os.Process;
 import android.os.RemoteException;
 import android.os.UserHandle;
+import android.os.UserManager;
 import android.provider.Settings;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -65,6 +67,8 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 
 import com.android.systemui.R;
+import com.android.systemui.recents.Recents;
+import com.android.systemui.recents.misc.SystemServicesProxy;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.ExpandableCard;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.OptionsItem;
 import com.android.systemui.slimrecent.icons.IconsHandler;
@@ -74,6 +78,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 
 import java.util.ArrayList;
+import android.util.ArraySet;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
@@ -147,6 +152,8 @@ public class RecentPanelView {
     private Set<String> mCurrentFavoritesSplit = new HashSet<String>();
 
     private Set<String> mBlacklist = new HashSet<String>();
+
+    private ArraySet<Integer> mCurrentQuietProfiles = new ArraySet<Integer>();
 
     private PackageManager mPm;
     private ActivityManager mAm;
@@ -1033,13 +1040,12 @@ public class RecentPanelView {
             int firstItems = 0;
             final ArrayList<TaskDescription> nonFavoriteTasks = new ArrayList<>();
 
+            SystemServicesProxy ssp = Recents.getSystemServices();
+            int currentUserId = ssp.getCurrentUser();
+            updateCurrentQuietProfilesCache(currentUserId);
             final List<ActivityManager.RecentTaskInfo> recentTasks =
-                    mAm.getRecentTasksForUser(ActivityManager.getMaxRecentTasksStatic(),
-                    ActivityManager.RECENT_IGNORE_HOME_AND_RECENTS_STACK_TASKS
-                    | ActivityManager.RECENT_INGORE_PINNED_STACK_TASKS
-                    | ActivityManager.RECENT_IGNORE_UNAVAILABLE
-                    | ActivityManager.RECENT_INCLUDE_PROFILES,
-                    UserHandle.CURRENT.getIdentifier());
+                    ssp.getRecentTasks(ActivityManager.getMaxRecentTasksStatic(),
+                    currentUserId, false/*includeFrontMostExcludedTask*/, mCurrentQuietProfiles);
 
             final int numTasks = recentTasks.size();
 
@@ -1239,6 +1245,21 @@ public class RecentPanelView {
             if (!isTasksLoaded()) {
                 setVisibility();
                 tasksLoaded();
+            }
+        }
+    }
+
+    private void updateCurrentQuietProfilesCache(int currentUserId) {
+        mCurrentQuietProfiles.clear();
+
+        UserManager userManager = (UserManager) mContext.getSystemService(Context.USER_SERVICE);
+        List<UserInfo> profiles = userManager.getProfiles(currentUserId);
+        if (profiles != null) {
+            for (int i = 0; i < profiles.size(); i++) {
+                UserInfo user  = profiles.get(i);
+                if (user.isManagedProfile() && user.isQuietModeEnabled()) {
+                    mCurrentQuietProfiles.add(user.id);
+                }
             }
         }
     }
