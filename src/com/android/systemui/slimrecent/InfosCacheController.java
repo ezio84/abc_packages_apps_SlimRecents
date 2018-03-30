@@ -73,44 +73,23 @@ public class InfosCacheController {
         if (mMemoryCache == null) {
             mMemoryCache = new LruCache<String, ActivityInfo>(cacheSize);
         }
-
-        // Receive broadcasts
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_PACKAGE_CHANGED);
-        filter.addAction(Intent.ACTION_PACKAGE_ADDED);
-        filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
-        mContext.registerReceiver(mBroadcastReceiver, filter);
     }
 
-    /**
-     * Listen for package change or added broadcast.
-     */
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (Intent.ACTION_PACKAGE_CHANGED.equals(action)
-                    || Intent.ACTION_PACKAGE_ADDED.equals(action)
-                    || Intent.ACTION_PACKAGE_REMOVED.equals(action)) {
-                // Get the component name from the intent.
-                final String[] components = intent.getStringArrayExtra(
-                    Intent.EXTRA_CHANGED_COMPONENT_NAME_LIST);
-                if (components == null) {
-                    return;
-                }
-                final ArrayList<String> keysToRemove = new ArrayList<String>();
-                for (String key : mKeys) {
-                    for (String cn : components) {
-                        if (key.toLowerCase().contains(cn.toLowerCase())) {
-                            keysToRemove.add(key);
-                        }
-                    }
-                }
-                for (String key : keysToRemove) {
-                    removeInfosFromMemCache(key);
-                }
+    // Called from RecentController BroadcastReceiver
+    public void refreshPackage(String packageName) {
+        if (packageName == null) {
+            return;
+        }
+        final ArrayList<String> keysToRemove = new ArrayList<String>();
+        for (String key : mKeys) {
+            if (key.toLowerCase().contains(packageName.toLowerCase())) {
+                keysToRemove.add(key);
             }
         }
-    };
+        for (String key : keysToRemove) {
+            removeInfosFromMemCache(key);
+        }
+    }
 
     /**
      * Add the info to the LRU cache.

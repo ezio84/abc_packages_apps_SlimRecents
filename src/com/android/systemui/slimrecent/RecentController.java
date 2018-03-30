@@ -279,6 +279,11 @@ public class RecentController implements RecentPanelView.OnExitListener,
                 .removeCallbacks(this);
     }
 
+    public void refreshCachedPackage(String packageName, boolean removedPackage) {
+        CacheController.getInstance(mContext, null).refreshPackage(packageName, removedPackage);
+        InfosCacheController.getInstance(mContext).refreshPackage(packageName);
+    }
+
     public void addSbCallbacks() {
         SysUiServiceProvider.getComponent(mContext, CommandQueue.class)
                 .addCallbacks(this);

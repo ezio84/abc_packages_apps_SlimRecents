@@ -76,42 +76,31 @@ public class CacheController {
         }
     }
 
-    /**
-     * Listen for package change or added broadcast.
-     */
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (Intent.ACTION_PACKAGE_CHANGED.equals(action)
-                    || Intent.ACTION_PACKAGE_ADDED.equals(action)
-                    || Intent.ACTION_PACKAGE_REMOVED.equals(action)) {
-                // Get the package name from the intent.
-                Uri uri = intent.getData();
-                final String packageName = uri != null ? uri.getSchemeSpecificPart() : null;
-                if (packageName == null) {
-                    return;
-                }
+    // Called from RecentController BroadcastReceiver
+    public void refreshPackage(String packageName, boolean removedPackage) {
+        if (packageName == null) {
+            return;
+        }
 
-                // Check if icons from the searched package are present.
-                // If yes remove them.
-                final ArrayList<String> keysToRemove = new ArrayList<String>();
-                for (String key : mKeys) {
-                    if (key.toLowerCase().contains(packageName.toLowerCase())) {
-                        keysToRemove.add(key);
-                    }
-                }
-                for (String key : keysToRemove) {
-                    removeBitmapFromMemCache(key);
-                    if (mEvictionCallback != null) {
-                        mEvictionCallback.onEntryEvicted(key);
-                    }
-                }
-                if (Intent.ACTION_PACKAGE_REMOVED.equals(action)) {
-                    mayBeRemoveFavoriteEntry(packageName);
-                }
+        // Check if icons from the searched package are present.
+        // If yes remove them.
+        final ArrayList<String> keysToRemove = new ArrayList<String>();
+        for (String key : mKeys) {
+            if (key.toLowerCase().contains(packageName.toLowerCase())) {
+                keysToRemove.add(key);
             }
         }
-    };
+        for (String key : keysToRemove) {
+            removeBitmapFromMemCache(key);
+            if (mEvictionCallback != null) {
+                mEvictionCallback.onEntryEvicted(key);
+            }
+        }
+        if (removedPackage) {
+            mayBeRemoveFavoriteEntry(packageName);
+        }
+    }
+
 
     /**
      * Remove favorite if current app was uninstalled.
@@ -175,14 +164,6 @@ public class CacheController {
                 }
             };
         }
-
-        // Receive broadcasts
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_PACKAGE_CHANGED);
-        filter.addAction(Intent.ACTION_PACKAGE_ADDED);
-        filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
-        filter.addDataScheme("package");
-        mContext.registerReceiver(mBroadcastReceiver, filter);
     }
 
     /**
