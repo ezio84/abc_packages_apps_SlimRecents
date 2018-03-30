@@ -424,7 +424,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
         if (mAnimationState == ANIMATION_STATE_NONE) {
             if (!isShowing()) {
                 mIsToggled = true;
-                if (mRecentPanelView.isTasksLoaded()) {
+                if (mRecentPanelView.areAllTasksLoaded()) {
                     showRecents();
                 } else if (!mIsPreloaded) {
                     // This should never happen due that preload should
