@@ -134,8 +134,8 @@ public class RecentPanelView {
             new ArrayList<TaskExpandedStates>();
 
     private boolean mCancelledByUser;
-    private boolean mTasksLoaded;
     private boolean mIsLoading;
+    private boolean mAtLeastOneTaskAvailable;
 
     private int mMaxAppsToLoad;
     private float mCornerRadius;
@@ -811,7 +811,8 @@ public class RecentPanelView {
      * Load all tasks we want.
      */
     protected void loadTasks() {
-        if (areAllTasksLoaded() || mIsLoading) {
+        if (mController.isShowing() || mIsLoading) {
+            // loader is already running
             return;
         }
         updateExpandedTaskStates();
@@ -892,21 +893,14 @@ public class RecentPanelView {
 
     protected void setCancelledByUser(boolean cancelled) {
         mCancelledByUser = cancelled;
-        if (cancelled) {
-            setTasksLoaded(false);
-        }
     }
 
-    protected void setTasksLoaded(boolean loaded) {
-        mTasksLoaded = loaded;
+    protected boolean atLeastOneTaskAvailable() {
+        return mAtLeastOneTaskAvailable;
     }
 
     protected boolean isCancelledByUser() {
         return mCancelledByUser;
-    }
-
-    protected boolean areAllTasksLoaded() {
-        return mTasksLoaded;
     }
 
     protected void setScaleFactor(float factor) {
@@ -986,10 +980,11 @@ public class RecentPanelView {
      * Notify listener that tasks are loaded.
      */
     private void taskLoaded() {
-        if (mCancelledByUser) {
+        if (isCancelledByUser()) {
             // Don't load
             return;
         }
+        mAtLeastOneTaskAvailable = true;
         // we have at least one task, show the panel
         if (mOnTasksLoadedListener != null) {
             mOnTasksLoadedListener.onTasksLoaded();
@@ -1000,7 +995,6 @@ public class RecentPanelView {
      * Notify listener that we exit recents panel now.
      */
     private void exit() {
-        setTasksLoaded(false);
         if (mOnExitListener != null) {
             mOnExitListener.onExit();
         }
@@ -1035,8 +1029,8 @@ public class RecentPanelView {
         protected void onPreExecute() {
             super.onPreExecute();
 
+            mAtLeastOneTaskAvailable = false;
             mIsLoading = true;
-            setTasksLoaded(false);
 
             // be sure to hide cards optionsView in the viewHolder
             // before cleaning up cards
@@ -1063,7 +1057,7 @@ public class RecentPanelView {
                 if (mCounter >= mMaxAppsToLoad) {
                     break;
                 }
-                if (isCancelled() || mCancelledByUser) {
+                if (isCancelled() || isCancelledByUser()) {
                     mIsLoading = false;
                     return false;
                 }
@@ -1165,7 +1159,7 @@ public class RecentPanelView {
                 if (mCounter >= mMaxAppsToLoad) {
                     break;
                 }
-                if (isCancelled() || mCancelledByUser) {
+                if (isCancelled() || isCancelledByUser()) {
                     mIsLoading = false;
                     return false;
                 }
@@ -1229,11 +1223,11 @@ public class RecentPanelView {
         @Override
         protected void onProgressUpdate(RecentCard... card) {
             mCardAdapter.addCard(card[0]);
-            if (!areAllTasksLoaded()) {
-                // we have at least one task and card, so can show the panel while we
-                // load more tasks and cards
-               setVisibility();
-               taskLoaded();
+            // we have at least one task and card, so can show the panel while we
+            // load more tasks and cards
+            if (mCounter == 1) {
+                setVisibility();
+                taskLoaded();
             }
         }
 
@@ -1249,8 +1243,7 @@ public class RecentPanelView {
             // Notify arrayadapter that data set has changed
             notifyDataSetChanged(true);
             // Notfiy controller that tasks are completly loaded.
-            mIsLoading = false;;
-            setTasksLoaded(true);
+            mIsLoading = false;
             setVisibility();
             taskLoaded();
         }
