@@ -470,6 +470,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
         if (!mIsUserSetup) {
             return;
         }
+        if (mIsToggled) {
+            Log.w(TAG, "cancelPreloadRecentApps() called after toggle, discarding");
+            return;
+        }
         if (mRecentPanelView != null && !isShowing()) {
             mIsPreloaded = false;
             mRecentPanelView.setCancelledByUser(true);
