@@ -1274,7 +1274,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
         mRecentPanelView.setMediaInfo(mediaMetaData);
     }
 
-    public void setMediaColors(boolean colorizedMedia, int[] colors) {
-        mRecentPanelView.setMediaColors(colorizedMedia ? colors[0] : -1);
+    public void setMediaColors(boolean colorizedMedia, int[] colors, Drawable artwork) {
+        mRecentPanelView.setMediaColors(colorizedMedia ? colors[0] : -1,
+                colorizedMedia ? ImageHelper.getResizedIconDrawable(artwork, mContext, R.dimen.recent_app_icon_size, mScaleFactor)
+                : null);
     }
 }
