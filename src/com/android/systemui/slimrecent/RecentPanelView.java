@@ -1049,6 +1049,7 @@ public class RecentPanelView {
 
             mCounter = 0;
             int firstItems = 0;
+            final ArrayList<TaskDescription> mediaPlayingTasks = new ArrayList<>();
             final ArrayList<TaskDescription> nonFavoriteTasks = new ArrayList<>();
 
             final List<ActivityManager.RecentTaskInfo> recentTasks = getAllRecentTasks();
@@ -1109,6 +1110,10 @@ public class RecentPanelView {
                     item.setIsFavorite(true);
                 }
 
+                if (mMediaPlaying && item.packageName.toLowerCase().equals(mMediaPackageName)) {
+                    item.setisMediaPlayingTask(true);
+                }
+
                 if (topTask) {
                     // User want to see actual running task. Set it here
                     int oldState = getExpandedState(item);
@@ -1144,10 +1149,13 @@ public class RecentPanelView {
                             oldState |= EXPANDED_STATE_BY_SYSTEM;
                         }*/
                         item.setExpandedState(oldState);
-                        // Favorite tasks are added next. Non favorite
+                        // Favorite tasks are added next. Media playing and non favorite
                         // we hold for a short time in an extra list.
                         if (item.getIsFavorite()) {
                             addCard(item, false, false);
+                        } else if (item.isMediaPlayingTask()) {
+                            item.setisMediaPlayingTask(true);
+                            mediaPlayingTasks.add(item);
                         } else {
                             nonFavoriteTasks.add(item);
                         }
@@ -1156,6 +1164,17 @@ public class RecentPanelView {
                 }
             }
 
+            // Add now the media playing tasks to the final task list.
+            for (TaskDescription item : mediaPlayingTasks) {
+                if (mCounter >= mMaxAppsToLoad) {
+                    break;
+                }
+                if (isCancelled() || isCancelledByUser()) {
+                    mIsLoading = false;
+                    return false;
+                }
+                addCard(item, false, false);
+            }
             // Add now the non favorite tasks to the final task list.
             for (TaskDescription item : nonFavoriteTasks) {
                 if (mCounter >= mMaxAppsToLoad) {
@@ -1305,13 +1324,11 @@ public class RecentPanelView {
 
     private int getCardBackgroundColor(TaskDescription task) {
         if (mCardColor != 0x0ffffff/* &&
-                !(task != null && mMediaPlaying
-                && task.packageName.toLowerCase().equals(mMediaPackageName) && mMediaColor != -1)*/) {
+                !(task != null && task.isMediaPlayingTask() && mMediaColor != -1)*/) {
             // uncomment above lines in the "if" and in the setMediaColors method to get the albumart color
             // also if the user sets a custom cards color
             return mCardColor;
-        } else if (task != null && mMediaPlaying
-                && task.packageName.toLowerCase().equals(mMediaPackageName) && mMediaColor != -1) {
+        } else if (task != null && task.isMediaPlayingTask() && mMediaColor != -1) {
             return mMediaColor;
         } else if (task != null && task.cardColor != 0) {
             return task.cardColor;
@@ -1323,8 +1340,7 @@ public class RecentPanelView {
     private Drawable getCardIcon(TaskDescription task, Drawable icon, RecentCard card) {
         // if the app is the current media player and a song is playing
         // we set track infos as title
-        if (task != null && mMediaPlaying
-                && task.packageName.toLowerCase().equals(mMediaPackageName)) {
+        if (task != null && task.isMediaPlayingTask()) {
             final Drawable albumart = getAlbumArt();
             if (albumart != null) {
                 return albumart;
@@ -1345,8 +1361,7 @@ public class RecentPanelView {
     private String getCardTitle(TaskDescription task, RecentCard card) {
         // if the app is the current media player and a song is playing
         // we set track infos as title
-        if (task != null && mMediaPlaying
-                && task.packageName.toLowerCase().equals(mMediaPackageName)) {
+        if (task != null && task.isMediaPlayingTask()) {
             card.packageName = mMediaPackageName;
             final String info = getTrackInfo();
             if (info != null) {
