@@ -290,7 +290,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     }
 
     public void evictAllCaches() {
-        ThumbnailsCacheController.getInstance(mContext).clearCache();
+        //ThumbnailsCacheController.getInstance(mContext).clearCache();
         CacheController.getInstance(mContext, null).clearCache();
         InfosCacheController.getInstance(mContext).clearCache();
     }
@@ -298,8 +298,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
     public void trimCaches(boolean lowMem) {
         int maxMemory;
         if (lowMem) {
-            maxMemory = ThumbnailsCacheController.getInstance(mContext).getMaxMemory();
-            ThumbnailsCacheController.getInstance(mContext).trimToSize(maxMemory / 6);
+            /*maxMemory = ThumbnailsCacheController.getInstance(mContext).getMaxMemory();
+            ThumbnailsCacheController.getInstance(mContext).trimToSize(maxMemory / 6);*/
             maxMemory = CacheController.getInstance(mContext, null).getMaxMemory();
             CacheController.getInstance(mContext, null).trimToSize(maxMemory / 8);
             InfosCacheController.getInstance(mContext).trimToSize(10);
@@ -743,7 +743,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
                 CacheController.getInstance(mContext, null).clearCache();
                 mIconsHandler.refresh();
                 mIconsHandler.setScaleFactor(scaleFactor);
-                ThumbnailsCacheController.getInstance(mContext).clearCache();
+                //ThumbnailsCacheController.getInstance(mContext).clearCache();
             }
 
             if (mRecentPanelView != null) {
