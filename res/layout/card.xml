@@ -55,7 +55,8 @@
                         <com.android.systemui.slimrecent.RecentImageView
                             android:id="@+id/favorite_icon"
                             android:src="@drawable/ic_recent_favorite"
-                            android:layout_gravity="end|top"
+                            android:padding="3dp"
+                            android:layout_gravity="start|top"
                             style="@style/card_header_favorite_icon" />
 
                     </FrameLayout>
