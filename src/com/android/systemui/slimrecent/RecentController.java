@@ -81,6 +81,8 @@ import com.android.systemui.statusbar.CommandQueue;
 import com.android.systemui.SysUiServiceProvider;
 import com.android.systemui.statusbar.phone.StatusBar;
 
+import com.android.internal.utils.du.UserContentObserver;
+
 import static com.android.systemui.statusbar.phone.StatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS;
 
 import java.util.ArrayList;
@@ -653,7 +655,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
             super(handler);
         }
 
-        @Override
         protected void observe() {
             super.observe();
             ContentResolver resolver = mContext.getContentResolver();
@@ -696,11 +697,11 @@ public class RecentController implements RecentPanelView.OnExitListener,
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SLIM_RECENTS_BLACKLIST_VALUES),
                     false, this, UserHandle.USER_ALL);
-            update(true);
+            update();
         }
 
         @Override
-        protected void update(boolean firstBoot) {
+        protected void update() {
             hideRecents(false);
 
             ContentResolver resolver = mContext.getContentResolver();
@@ -790,11 +791,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
                     && Settings.Secure.getInt(resolver,
                     Settings.Secure.USER_SETUP_COMPLETE, 0) != 0;
 
-            // preload recents after a settings change to refresh the panel
+            // preload recents after boot or a settings change to refresh the panel
             // before the user shows it again.
-            if (!firstBoot) {
-                preloadRecentApps();
-            }
+            preloadRecentApps();
         }
     }
 
