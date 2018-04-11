@@ -35,20 +35,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
+//import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
-import android.database.ContentObserver;
+//import android.database.ContentObserver;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
 import android.graphics.PixelFormat;
-import android.graphics.Point;
+//import android.graphics.Point;
 import android.media.MediaMetadata;
-import android.net.Uri;
+//import android.net.Uri;
 //import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
+//import android.os.Message;
 import android.os.RemoteException;
 import android.os.UserHandle;
 import android.provider.Settings;
@@ -56,7 +56,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.Display;
+//import android.view.Display;
 import android.view.Gravity;
 import android.view.IWindowManager;
 import android.view.KeyEvent;
@@ -337,10 +337,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private void setGravityAndImageResources() {
         // Calculate and set gravitiy.
         if (mLayoutDirection == View.LAYOUT_DIRECTION_RTL) {
-            if (mUserGravity == Gravity.LEFT) {
-                mMainGravity = Gravity.RIGHT;
+            if (mUserGravity == Gravity.START) {
+                mMainGravity = Gravity.END;
             } else {
-                mMainGravity = Gravity.LEFT;
+                mMainGravity = Gravity.START;
             }
         } else {
             mMainGravity = mUserGravity;
@@ -370,7 +370,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
         int padding = mContext.getResources()
                 .getDimensionPixelSize(R.dimen.slim_recents_elevation);
-        if (mMainGravity == Gravity.LEFT) {
+        if (mMainGravity == Gravity.START) {
             mRecentContainer.setPadding(0, 0, padding, 0);
             mEmptyRecentView.setRotation(180);
         } else {
@@ -400,8 +400,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
         final Configuration currentConfig = mContext.getResources()
                 .getConfiguration();
         Locale locale = currentConfig.locale;
-        int layoutDirection = TextUtils.getLayoutDirectionFromLocale(locale);
-        return layoutDirection;
+        return TextUtils.getLayoutDirectionFromLocale(locale);
     }
 
     @Override
@@ -641,8 +640,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private final Runnable mRecentRunnable = new Runnable() {
         @Override
         public void run() {
-            if (mAnimationState == ANIMATION_STATE_OUT) {
-            }
             mAnimationState = ANIMATION_STATE_NONE;
         }
     };
@@ -719,7 +716,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
             // Get user gravity.
             mUserGravity = Settings.System.getIntForUser(
-                    resolver, Settings.System.RECENT_PANEL_GRAVITY, Gravity.RIGHT,
+                    resolver, Settings.System.RECENT_PANEL_GRAVITY, Gravity.END,
                     UserHandle.USER_CURRENT);
 
             // Update colors in RecentPanelView
