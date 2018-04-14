@@ -1404,10 +1404,12 @@ public class RecentPanelView {
         mMediaPackageName = packageName;
     }
 
-    public void setMediaInfo(MediaMetadata mediaMetaData) {
+    public void setMediaColors(int color, Drawable artwork, MediaMetadata mediaMetaData) {
         mMediaMetaData = mediaMetaData;
-        // if we have already set track info for a card and the panel is showing,
-        // update card track infos in real time
+        mMediaColor = color;
+        mArtWork = artwork;
+        // if we have already set colors or info for a card and the panel is showing,
+        // update card color now
         if (mController.isShowing()) {
             int count = mCardAdapter.getItemCount();
             for (int i = 0; i < count; i++) {
@@ -1416,31 +1418,17 @@ public class RecentPanelView {
                     String info = getTrackInfo();
                     if (info != null) {
                         card.appName  = info;
-                        // postnotifyItemChanged will be called later by setMediaColors
-                        // (from Statusbar class we call it after setMediaInfo)
                     }
-                }
-            }
-        }
-    }
 
-    public void setMediaColors(int color, Drawable artwork) {
-        mMediaColor = color;
-        mArtWork = artwork;
-        // if we have already set albumart color for a card and the panel is showing,
-        // update card color now
-        if (mController.isShowing()) {
-            int count = mCardAdapter.getItemCount();
-            for (int i = 0; i < count; i++) {
-                RecentCard card = (RecentCard) mCardAdapter.getCard(i);
-                if (card.packageName.equals(mMediaPackageName)) {
                     if (mCardColor == 0x0ffffff && color != -1) {
                         card.cardBackgroundColor  = color;
                     }
+
                     final Drawable albumart = getAlbumArt();
                     if (albumart != null) {
                         card.appIcon = albumart;
                     }
+
                     postnotifyItemChanged(mCardRecyclerView, card);
                 }
             }

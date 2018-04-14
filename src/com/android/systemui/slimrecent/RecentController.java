@@ -1266,13 +1266,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
         mRecentPanelView.setMediaPlaying(playing, packageName);
     }
 
-    public void setMediaInfo(MediaMetadata mediaMetaData) {
-        mRecentPanelView.setMediaInfo(mediaMetaData);
-    }
-
-    public void setMediaColors(boolean colorizedMedia, int[] colors, Drawable artwork) {
+    public void setMediaColors(boolean colorizedMedia, int[] colors, Drawable artwork, MediaMetadata mediaMetaData) {
         mRecentPanelView.setMediaColors(colorizedMedia ? colors[0] : -1,
-                colorizedMedia ? ImageHelper.getResizedIconDrawable(artwork, mContext, R.dimen.recent_app_icon_size, mScaleFactor)
-                : null);
+                colorizedMedia ? ImageHelper.getResizedIconDrawable(
+                artwork, mContext, R.dimen.recent_app_icon_size, mScaleFactor) : null,
+                mediaMetaData);
     }
 }
