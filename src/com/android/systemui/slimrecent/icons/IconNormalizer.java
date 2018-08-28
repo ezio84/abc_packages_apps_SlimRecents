@@ -145,18 +145,7 @@ public class IconNormalizer {
      * For this method to work, the shape path bounds should be in [0,1]x[0,1] bounds.
      */
     private boolean isShape(Path maskPath) {
-        // Condition1:
-        // If width and height of the path not close to a square, then the icon shape is
-        // not same as the mask shape.
-        float iconRatio = ((float) mBounds.width()) / mBounds.height();
-        if (Math.abs(iconRatio - 1) > BOUND_RATIO_MARGIN) {
-            if (DEBUG) {
-                Log.d(TAG, "Not same as mask shape because width != height. " + iconRatio);
-            }
-            return false;
-        }
-
-        // Condition 2:
+        // Condition:
         // Actual icon (white) and the fitted shape (e.g., circle)(red) XOR operation
         // should generate transparent image, if the actual icon is equivalent to the shape.
         mFileId = mRandom.nextInt();
@@ -173,8 +162,10 @@ public class IconNormalizer {
 
         // Fit the shape within the icon's bounding box
         mMatrix.reset();
-        mMatrix.setScale(mBounds.width(), mBounds.height());
-        mMatrix.postTranslate(mBounds.left, mBounds.top);
+        float matrixScale = Math.max(mBounds.width(), mBounds.height());
+        mMatrix.setScale(matrixScale, matrixScale);
+        mMatrix.postTranslate(mBounds.left - (matrixScale - mBounds.width())/2,
+                mBounds.top - (matrixScale - mBounds.height())/2);
         maskPath.transform(mMatrix);
 
         // XOR operation
