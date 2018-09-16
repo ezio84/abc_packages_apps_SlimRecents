@@ -45,7 +45,9 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
 import android.graphics.PixelFormat;
-//import android.graphics.Point;
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.hardware.display.DisplayManager;
 import android.media.MediaMetadata;
 //import android.net.Uri;
 //import android.os.Bundle;
@@ -58,7 +60,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-//import android.view.Display;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.IWindowManager;
 import android.view.KeyEvent;
@@ -1021,7 +1023,15 @@ public class RecentController implements RecentPanelView.OnExitListener,
         SystemServicesProxy ssp = SystemServicesProxy.getInstance(mContext);
         ActivityManager.RunningTaskInfo runningTask = ssp.getRunningTask();
         int createMode = ActivityManager.DOCKED_STACK_CREATE_MODE_TOP_OR_LEFT;
-        if (ssp.startTaskInDockedMode(runningTask.id, createMode)) {
+        Point realSize = new Point();
+        mContext.getSystemService(DisplayManager.class).getDisplay(Display.DEFAULT_DISPLAY)
+                .getRealSize(realSize);
+        boolean isLandscape = mContext.getResources().getConfiguration().orientation ==
+                Configuration.ORIENTATION_LANDSCAPE;
+        // dock the stack to half the screen
+        Rect initialBounds = new Rect(0, 0, isLandscape ? (int)(realSize.x/2) : realSize.x,
+                isLandscape ? realSize.y : (int)(realSize.y/2));
+        if (ssp.moveTaskToDockedStack(runningTask.id, createMode, initialBounds)) {
             openLastAppPanelToggle();
             if (!isShowing()) {
                 showRecents();

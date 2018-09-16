@@ -280,7 +280,14 @@ public class RecentPanelView implements NextAlarmChangeCallback {
                                         null, true, true, false, -1);
                             } catch (Exception e) {}
                         }
-                        mController.startTaskinMultiWindow(task.persistentTaskId);
+
+                        final boolean isTopTask =
+                                (task.getExpandedState() & EXPANDED_STATE_TOPTASK) != 0;
+                        if (isTopTask) {
+                            mController.startMultiWindow();
+                        } else {
+                            mController.startTaskinMultiWindow(task.persistentTaskId);
+                        }
                         clearOptions();
                         return;
                     } else if (id == OPTION_KILL) {
