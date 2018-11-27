@@ -16,7 +16,12 @@
  -->
 
 <resources>
-     <!-- Slim recents -->
+    <!-- Slim recent app screen animation -->
+    <style name="Animation.SlimRecentScreen" parent="">
+        <item name="android:windowEnterAnimation">@anim/recent_enter</item>
+        <item name="android:windowExitAnimation">@anim/recent_exit</item>
+    </style>
+
     <style name="card_header_favorite_icon">
         <item name="android:layout_width">@dimen/recent_favorite_icon_size</item>
         <item name="android:layout_height">@dimen/recent_favorite_icon_size</item>

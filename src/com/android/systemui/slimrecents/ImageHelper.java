@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-package com.android.systemui.slimrecent;
+package com.android.systemui.slimrecents;
 
 import android.content.Context;
 import android.graphics.Bitmap;

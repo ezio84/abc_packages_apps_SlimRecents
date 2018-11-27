@@ -16,7 +16,7 @@
  * the License.
  */
 
-package com.android.systemui.slimrecent;
+package com.android.systemui.slimrecents;
 
 import android.content.ContentResolver;
 import android.content.Context;

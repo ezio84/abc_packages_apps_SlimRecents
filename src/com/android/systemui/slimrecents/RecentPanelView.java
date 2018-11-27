@@ -16,7 +16,7 @@
  * the License.
  */
 
-package com.android.systemui.slimrecent;
+package com.android.systemui.slimrecents;
 
 //import android.app.Activity;
 import android.app.ActivityManager;
@@ -72,6 +72,8 @@ import com.android.keyguard.KeyguardStatusView;
 import com.android.systemui.Dependency;
 import com.android.systemui.R;
 import com.android.systemui.recents.Recents;
+import com.android.systemui.shared.system.ActivityManagerWrapper;
+import com.android.systemui.shared.system.ActivityOptionsCompat;
 import com.android.systemui.recents.misc.SystemServicesProxy;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.ExpandableCard;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.OptionsItem;
@@ -89,9 +91,6 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static android.app.ActivityManager.StackId.PINNED_STACK_ID;
-import static android.app.ActivityManager.StackId.RECENTS_STACK_ID;
 
 /**
  * Our main view controller which handles and construct most of the view
@@ -269,26 +268,7 @@ public class RecentPanelView implements NextAlarmChangeCallback {
                     /*} else if (id == OPTION_MARKET) {
                         intent = getStoreIntent();*/
                     } else if (id == OPTION_MULTIWINDOW) {
-                        int dockSide = WindowManagerProxy.getInstance()
-                                .getDockSide();
-                        if (dockSide != WindowManager.DOCKED_INVALID) {
-                            try {
-                                //resize the docked stack to fullscreen to disable current
-                                //multiwindow mode
-                                mIam.resizeStack(
-                                        ActivityManager.StackId.DOCKED_STACK_ID,
-                                        null, true, true, false, -1);
-                            } catch (Exception e) {}
-                        }
-
-                        final boolean isTopTask =
-                                (task.getExpandedState() & EXPANDED_STATE_TOPTASK) != 0;
-                        if (isTopTask) {
-                            mController.startMultiWindow();
-                        } else {
-                            mController.startTaskinMultiWindow(task.persistentTaskId);
-                        }
-                        clearOptions();
+                        mController.startTaskinMultiWindow(task.persistentTaskId);
                         return;
                     } else if (id == OPTION_KILL) {
                         if (RecentController.killAppLongClick(
@@ -523,17 +503,10 @@ public class RecentPanelView implements NextAlarmChangeCallback {
                 boolean wasDocked = false;
                 int dockSide = WindowManagerProxy.getInstance().getDockSide();
                 if (dockSide != WindowManager.DOCKED_INVALID) {
-                    try {
-                        //resize the docked stack to fullscreen to disable current multiwindow mode
-                        mIam.resizeStack(
-                                ActivityManager.StackId.DOCKED_STACK_ID,
-                                null, true, true, false, -1);
-                    } catch (Exception e) {}
                     wasDocked = true;
                 }
-                ActivityOptions options = RecentController.getAnimation(mContext);
-                options.setDockCreateMode(0); //0 means dock app to top, 1 to bottom
-                options.setLaunchStackId(ActivityManager.StackId.DOCKED_STACK_ID);
+                ActivityOptions options =
+                        ActivityOptionsCompat.makeSplitScreenOptions(true/*dockTopLeft*/);
                 Handler mHandler = new Handler();
                 mHandler.postDelayed(new Runnable() {
                     public void run() {
@@ -669,30 +642,27 @@ public class RecentPanelView implements NextAlarmChangeCallback {
      */
     private void removeApplication(TaskDescription td) {
         // Kill the actual app and send accessibility event.
-        if (mAm != null) {
-            mAm.removeTask(td.persistentTaskId);
+        ActivityManagerWrapper.getInstance().removeTask(td.persistentTaskId);
 
-            // Accessibility feedback
-            mCardRecyclerView.setContentDescription(
-                    mContext.getString(R.string.accessibility_recents_item_dismissed,
-                            td.getLabel()));
-            mCardRecyclerView.sendAccessibilityEvent(
-                    AccessibilityEvent.TYPE_VIEW_SELECTED);
-            mCardRecyclerView.setContentDescription(null);
+        // Accessibility feedback
+        mCardRecyclerView.setContentDescription(
+                mContext.getString(R.string.accessibility_recents_item_dismissed,
+                        td.getLabel()));
+        mCardRecyclerView.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_SELECTED);
+        mCardRecyclerView.setContentDescription(null);
 
-            // Remove app from task and expanded state list.
-            removeExpandedTaskState(td.identifier);
+        // Remove app from task and expanded state list.
+        removeExpandedTaskState(td.identifier);
 
-            // Refresh activity info on next app load if we removed the app
-            // we can still keep icons
-            InfosCacheController.getInstance(mContext).removeInfos(td.componentName);
-            /* we could also refresh thumbs but this will slow down panel loading e.g. after a
-                clear all apps action, it's not worth it considering that even an old thumb
-                is good to recognize the app. A better solution would be to add a "last time"
-                thumb load check and refresh thumbs after some time.
-            */
-            // ThumbnailsCacheController.getInstance(mContext).removeThumb(td.identifier);
-        }
+        // Refresh activity info on next app load if we removed the app
+        // we can still keep icons
+        InfosCacheController.getInstance(mContext).removeInfos(td.componentName);
+        /* we could also refresh thumbs but this will slow down panel loading e.g. after a
+            clear all apps action, it's not worth it considering that even an old thumb
+            is good to recognize the app. A better solution would be to add a "last time"
+            thumb load check and refresh thumbs after some time.
+        */
+        // ThumbnailsCacheController.getInstance(mContext).removeThumb(td.identifier);
 
         // All apps were removed? Close recents panel.
         if (mCardAdapter.getItemCount() == 0) {
@@ -731,9 +701,7 @@ public class RecentPanelView implements NextAlarmChangeCallback {
                 // skip favorite apps
                 continue;
             }
-            if (mAm != null) {
-                mAm.removeTask(recentInfo.persistentId);
-            }
+            ActivityManagerWrapper.getInstance().removeTask(recentInfo.persistentId);
         }
 
         return !hasFavorite;
@@ -1298,11 +1266,9 @@ public class RecentPanelView implements NextAlarmChangeCallback {
     }
 
     private List<ActivityManager.RecentTaskInfo> getAllRecentTasks() {
-        SystemServicesProxy ssp = Recents.getSystemServices();
-        int currentUserId = ssp.getCurrentUser();
-        updateCurrentQuietProfilesCache(currentUserId);
-        return ssp.getRecentTasks(ActivityManager.getMaxRecentTasksStatic(),
-                currentUserId, false/*includeFrontMostExcludedTask*/, mCurrentQuietProfiles);
+        return mAm.getRecentTasks(ActivityManager.getMaxRecentTasksStatic(),
+                ActivityManager.SLIM_RECENTS);
+
     }
 
     private void updateCurrentQuietProfilesCache(int currentUserId) {
@@ -1507,9 +1473,7 @@ public class RecentPanelView implements NextAlarmChangeCallback {
             for (int i = 0; i < tasks.size(); i++) {
                 ActivityManager.RunningTaskInfo task = tasks.get(i);
                 int stackId = task.stackId;
-                if (stackId != RECENTS_STACK_ID && stackId != PINNED_STACK_ID) {
-                    return task;
-                }
+                return task;
             }
         }
         return null;
@@ -1557,47 +1521,17 @@ public class RecentPanelView implements NextAlarmChangeCallback {
         return getThumbnail(persistentTaskId, true, context);
     }
 
-    /**
-     * Returns a task thumbnail from the activity manager
-     */
-    public static Bitmap getThumbnailOld(int taskId, Context ctx) {
-        final ActivityManager am = (ActivityManager)
-                ctx.getSystemService(Context.ACTIVITY_SERVICE);
-        ActivityManager.TaskThumbnail taskThumbnail =
-                am.getTaskThumbnail(taskId);
-        if (taskThumbnail == null) return null;
-
-        Bitmap thumbnail = taskThumbnail.mainThumbnail;
-        ParcelFileDescriptor descriptor = taskThumbnail.thumbnailFileDescriptor;
-        if (thumbnail == null && descriptor != null) {
-            thumbnail = BitmapFactory.decodeFileDescriptor(
-                    descriptor.getFileDescriptor(), null, sBitmapOptions);
-        }
-        if (descriptor != null) {
-            try {
-                descriptor.close();
-            } catch (IOException e) {
+    public static Bitmap getThumbnail(int taskId, boolean reducedResolution, Context context) {
+        try {
+            ActivityManager.TaskSnapshot snapshot = ActivityManager.getService()
+                    .getTaskSnapshot(taskId, reducedResolution);
+            if (snapshot != null) {
+                return Bitmap.createHardwareBitmap(snapshot.getSnapshot());
             }
+        } catch (RemoteException e) {
+            Log.w(TAG, "Failed to retrieve snapshot", e);
         }
-        return thumbnail;
-    }
-
-    public static Bitmap getThumbnail(int taskId, boolean reducedResolution,
-            Context ctx) {
-        if (ActivityManager.ENABLE_TASK_SNAPSHOTS) {
-            try {
-                ActivityManager.TaskSnapshot snapshot = ActivityManager.getService()
-                        .getTaskSnapshot(taskId, reducedResolution);
-                if (snapshot != null) {
-                    return Bitmap.createHardwareBitmap(snapshot.getSnapshot());
-                }
-            } catch (RemoteException e) {
-                Log.w(TAG, "Failed to retrieve snapshot", e);
-            }
-            return null;
-        } else {
-            return getThumbnailOld(taskId, ctx);
-        }
+        return null;
     }
 
     interface DownloaderCallback {

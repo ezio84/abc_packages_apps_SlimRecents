@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.systemui.slimrecent;
+package com.android.systemui.slimrecents;
 
 import static android.view.KeyEvent.ACTION_DOWN;
 import static android.view.KeyEvent.KEYCODE_BACK;

@@ -15,7 +15,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.android.systemui.slimrecent;
+package com.android.systemui.slimrecents;
 
 import android.content.Context;
 import android.content.res.ColorStateList;

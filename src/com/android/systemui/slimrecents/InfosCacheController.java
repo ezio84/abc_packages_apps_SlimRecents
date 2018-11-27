@@ -15,7 +15,7 @@
  * the License.
  */
 
-package com.android.systemui.slimrecent;
+package com.android.systemui.slimrecents;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
