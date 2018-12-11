@@ -204,7 +204,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
         mConfiguration = new Configuration();
         mConfiguration.updateFrom(context.getResources().getConfiguration());
 
-        mParentView = new FrameLayout(mContext);
+        mParentView = new RecentBaseFrameLayout(mContext, this);
 
         // Inflate our recents layout
         mRecentContainer =
@@ -266,20 +266,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_OUTSIDE) {
                     // Touch outside the recents window....hide recents window.
-                    onExit();
-                    return true;
-                }
-                return false;
-            }
-        });
-        // Listen for back key events to close recents screen.
-        mParentView.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK
-                    && event.getAction() == KeyEvent.ACTION_UP
-                    && !event.isCanceled()) {
-                    // Back key was pressed....hide recents window.
                     onExit();
                     return true;
                 }
