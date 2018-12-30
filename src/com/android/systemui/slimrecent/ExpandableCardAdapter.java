@@ -72,7 +72,10 @@ public class ExpandableCardAdapter
         card.index = position;
         holder.setCard(card);
 
-        holder.screenshot.setVisibility(card.expanded ? View.VISIBLE : View.GONE);
+        final boolean screenshotAvailable = canDisplayScreenshot(card);
+
+        holder.screenshot.setVisibility(screenshotAvailable && card.expanded ?
+                View.VISIBLE : View.GONE);
         holder.expandButton.setRotation(card.expanded ? -180 : 0);
 
         holder.card.setRadius(card.cornerRadius);
@@ -84,7 +87,8 @@ public class ExpandableCardAdapter
         }/* else if (card.expandVisible) {
             holder.expandButton.setImageResource(R.drawable.ic_expand);
         }*/
-        holder.expandButton.setVisibility(card.noIcon ? View.INVISIBLE : View.VISIBLE);
+        holder.expandButton.setVisibility(!card.noIcon &&
+                (mFastMode || screenshotAvailable) ? View.VISIBLE : View.GONE);
 
         if (card.cardBackgroundColor != 0) {
             // we need to override tint list instead of setting cardview background color
@@ -115,9 +119,13 @@ public class ExpandableCardAdapter
 
         holder.appName.setText(card.appName);
 
-        if (!mFastMode && card.screenshot != null && !card.screenshot.isRecycled()) {
+        if (!mFastMode && screenshotAvailable) {
             holder.screenshot.setImageBitmap(card.screenshot);
         }
+    }
+
+    private boolean canDisplayScreenshot(ExpandableCard card) {
+        return card.screenshot != null && !card.screenshot.isRecycled();
     }
 
     public void addCard(ExpandableCard card) {
@@ -311,7 +319,8 @@ public class ExpandableCardAdapter
             appIcon.setVisibility(show ? View.VISIBLE : View.GONE);
             appName.setVisibility(show ? View.VISIBLE : View.GONE);
             favorite.setVisibility(show && expCard.favorite ? View.VISIBLE : View.GONE);
-            expandButton.setVisibility(show /*&& !expCard.noIcon */? View.VISIBLE : View.GONE);
+            expandButton.setVisibility(show /*&& !expCard.noIcon */ &&
+                    (mFastMode || canDisplayScreenshot(expCard)) ? View.VISIBLE : View.GONE);
         }
 
         Animation.AnimationListener animListener =
