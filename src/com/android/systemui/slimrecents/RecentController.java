@@ -80,17 +80,15 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.text.TextUtils;
 
+import com.android.internal.icons.IconsHandler;
 import com.android.systemui.R;
 import com.android.systemui.recents.misc.SystemServicesProxy;
 import com.android.systemui.shared.recents.utilities.Utilities;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.ActivityOptionsCompat;
-import com.android.systemui.slimrecent.icons.IconsHandler;
 import com.android.systemui.statusbar.CommandQueue;
 import com.android.systemui.SysUiServiceProvider;
 import com.android.systemui.statusbar.phone.StatusBar;
-
-import com.android.internal.utils.du.UserContentObserver;
 
 import static com.android.systemui.statusbar.phone.StatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS;
 

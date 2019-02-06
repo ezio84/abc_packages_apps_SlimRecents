@@ -68,6 +68,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import com.android.internal.icons.IconsHandler;
 import com.android.keyguard.KeyguardStatusView;
 import com.android.systemui.Dependency;
 import com.android.systemui.R;
@@ -75,9 +76,8 @@ import com.android.systemui.recents.Recents;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.ActivityOptionsCompat;
 import com.android.systemui.recents.misc.SystemServicesProxy;
-import com.android.systemui.slimrecent.ExpandableCardAdapter.ExpandableCard;
-import com.android.systemui.slimrecent.ExpandableCardAdapter.OptionsItem;
-import com.android.systemui.slimrecent.icons.IconsHandler;
+import com.android.systemui.slimrecents.ExpandableCardAdapter.ExpandableCard;
+import com.android.systemui.slimrecents.ExpandableCardAdapter.OptionsItem;
 import com.android.systemui.stackdivider.WindowManagerProxy;
 import com.android.systemui.statusbar.policy.NextAlarmController;
 import com.android.systemui.statusbar.policy.NextAlarmController.NextAlarmChangeCallback;
@@ -88,6 +88,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import android.util.ArraySet;
 import java.util.List;
+import java.util.Locale;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -1374,7 +1375,7 @@ public class RecentPanelView implements NextAlarmChangeCallback {
     @Override
     public void onNextAlarmChanged(AlarmManager.AlarmClockInfo nextAlarm) {
         if (nextAlarm != null) {
-            mAlarm = KeyguardStatusView.formatNextAlarm(mContext, nextAlarm);
+            mAlarm = formatNextAlarm(nextAlarm);
             if (mController.isShowing()) {
                 int count = mCardAdapter.getItemCount();
                 for (int i = 0; i < count; i++) {
@@ -1388,6 +1389,17 @@ public class RecentPanelView implements NextAlarmChangeCallback {
         } else {
             mAlarm = "";
         }
+    }
+
+    private String formatNextAlarm(AlarmManager.AlarmClockInfo info) {
+        if (info == null) {
+            return "";
+        }
+        String skeleton = android.text.format.DateFormat
+                .is24HourFormat(mContext, ActivityManager.getCurrentUser()) ? "EHm" : "Ehma";
+        String pattern = android.text.format.DateFormat
+                .getBestDateTimePattern(Locale.getDefault(), skeleton);
+        return android.text.format.DateFormat.format(pattern, info.getTriggerTime()).toString();
     }
 
     private String getClockWithAlarmTitle(String appName) {

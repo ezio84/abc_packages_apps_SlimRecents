@@ -28,9 +28,9 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Process;
 
+import com.android.internal.icons.IconsHandler;
 import com.android.systemui.R;
-import com.android.systemui.slimrecent.ImageHelper;
-import com.android.systemui.slimrecent.icons.IconsHandler;
+import com.android.systemui.slimrecents.ImageHelper;
 
 import java.lang.ref.WeakReference;
 

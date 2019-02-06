@@ -46,13 +46,13 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" >
 
-                        <com.android.systemui.slimrecent.AppIconImageView
+                        <com.android.systemui.slimrecents.AppIconImageView
                             android:id="@+id/app_icon"
                             android:padding="3dp"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
 
-                        <com.android.systemui.slimrecent.RecentImageView
+                        <com.android.systemui.slimrecents.RecentImageView
                             android:id="@+id/favorite_icon"
                             android:src="@drawable/ic_recent_favorite"
                             android:padding="3dp"
@@ -87,7 +87,7 @@
                     android:layout_height="match_parent" />
             </FrameLayout>
 
-            <com.android.systemui.slimrecent.RecentThumbView
+            <com.android.systemui.slimrecents.RecentThumbView
                 android:id="@+id/screenshot"
                 android:background="@android:color/transparent"
                 android:layout_width="match_parent"
